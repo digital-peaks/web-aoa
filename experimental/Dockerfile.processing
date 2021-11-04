@@ -1,0 +1,25 @@
+FROM rocker/r-base:4.1.2
+
+WORKDIR /app
+
+# Install deps for R packages
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libudunits2-dev \
+    libgdal-dev
+
+# install R packages
+RUN R -e "install.packages('CAST')"
+RUN R -e "install.packages('sf')"
+RUN R -e "install.packages('raster')"
+RUN R -e "install.packages('viridis')"
+RUN R -e "install.packages('latticeExtra')"
+RUN R -e "install.packages('randomForest')"
+RUN R -e "install.packages('doParallel')"
+
+COPY Cookfarm.RData ./
+COPY predictors_2012-03-25.grd ./
+
+COPY cast_example.R ./
+
+CMD R -e "source('/app/cast_example.R')"
