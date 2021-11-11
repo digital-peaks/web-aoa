@@ -3,7 +3,7 @@ library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training
 library(sp) #sp-Package for handlig spatial datasets
 library(rgdal) #rgdal-Packge for performing spatial operations
-library(sf) #sf-package ???
+library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 
 #install devtools and gdalUtils
@@ -11,7 +11,7 @@ library(rstac) #rstac for accessing STAC-Catalogue
 #devtools:::install_github("gearslaboratory/gdalUtils")
 library(gdalUtils) #gdalUtil-Package for tranforming images
 
-#install gdalcubes
+#install gdalcubes 
 #install.packages("gdalcubes")
-library(gdalcubes) #
+library(gdalcubes) #for creating data cubes 
 
