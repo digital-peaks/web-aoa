@@ -15,11 +15,23 @@ library(gdalUtils) #gdalUtil-Package for tranforming images
 #install.packages("gdalcubes")
 library(gdalcubes) #for creating data cubes (Mean over many Images to reduce cloud related noise)
 
+#install.packages("rjson")
+library(rjson)
+
+#install.packages("ggplot2")
+library(ggplot2)
 ##############################################################################################
-samplepolygons <- #geoJSON Data Polygons
-sentinal2Aimage <- #Sentinel2A Image for the Region the Polygons are in
-trainigData <- extract(sentinal2Aimage, samplepolygons, df=TRUE) #Extract Training Samples
-aoi <- #Area of Interest (may need to be transformed)
+samplePolygons <- read_sf('samplePolygons.geojson')
+plot(st_geometry(samplePolygons))
+
+aoi <- read_sf('aoi.geojson')
+plot(st_geometry(aoi))
+
+
+
+sentinal2aImage <- #Sentinel2A Image for the Region the Polygons are in
+trainigData <- extract(sentinal2aImage, samplePolygons, df=TRUE) #Extract Training Samples
+
 aoibbox <- #BBox of the Area of Interest
 stac <- stac("https://earth-search.aws.element84.com/v0") #link to STAC
 
@@ -46,4 +58,4 @@ newPredictionData <-  #Sentinel2A Image the Area of Interest covers
 classification <- predict(newPredictionData, model)
 aoa <- aoa(newPredictionData, model)
 aoaArea <- #Spatial extend of the Region in which the Model is not applicable
-new Samples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3) #create sample points inside the area of the aoa (here regular but other methods are possible)
+newSamples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3) #create sample points inside the area of the aoa (here regular but other methods are possible)
