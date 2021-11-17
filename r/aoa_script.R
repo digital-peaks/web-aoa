@@ -13,7 +13,7 @@ library(gdalUtils) #gdalUtil-Package for tranforming images
 
 #install gdalcubes 
 #install.packages("gdalcubes")
-library(gdalcubes) #for creating data cubes 
+library(gdalcubes) #for creating data cubes (Mean over many Images to reduce cloud related noise)
 
 ##############################################################################################
 samplepolygons <- #geoJSON Data Polygons
@@ -38,12 +38,12 @@ collection = stac_image_collection(items$features)
 model <- train(trainigData[,predictors], #extracted RGB-Values?
                trainigData$classes, #? Classes for LU/LC?
                method="rf", #Random Forrest
-               importance=TRUE,
+               importance=FALSE, #we do not need the most important predictors since we only have "one"
                ntree = 50, #Number of Trees
-               trControl = trainControl(method="cv", number=3)) #Cross Validation
+               trControl = trainControl(method="cv", number=3)) #Cross Validation (here 3-fold)
 
 newPredictionData <-  #Sentinel2A Image the Area of Interest covers
 classification <- predict(newPredictionData, model)
 aoa <- aoa(newPredictionData, model)
 aoaArea <- #Spatial extend of the Region in which the Model is not applicable
-new Samples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3)
+new Samples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3) #create sample points inside the area of the aoa (here regular but other methods are possible)
