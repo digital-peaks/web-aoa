@@ -20,29 +20,61 @@ library(rjson)
 
 #install.packages("ggplot2")
 library(ggplot2)
+
+# Auch ganz nice
+install.packages("mapview")
+library(mapview)
+
 ##############################################################################################
-samplePolygons <- read_sf('samplePolygons.geojson')
+samplePolygons <- read_sf('samplePolygons.geojson') # First set the working directory to this file
 plot(st_geometry(samplePolygons))
+mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
 
-aoi <- read_sf('aoi.geojson')
+aoi <- read_sf('aoi.geojson') # crs = 4326
 plot(st_geometry(aoi))
+mapview(st_geometry(aoi)) # Does nearly the same like the line above but on a real map 
+# ODER: mapview(st_bbox(aoi))
 
-
-
+#///////
 sentinal2aImage <- #Sentinel2A Image for the Region the Polygons are in
 trainigData <- extract(sentinal2aImage, samplePolygons, df=TRUE) #Extract Training Samples
+#////////
 
-aoibbox <- #BBox of the Area of Interest
-stac <- stac("https://earth-search.aws.element84.com/v0") #link to STAC
+aoibbox <- st_bbox(aoi)
+s <- stac("https://earth-search.aws.element84.com/v0") #link to STAC
+
+q <- s %>% # same like below but withou "post_request()"
+    stac_search(collections = "sentinel-s2-l2a-cogs",
+                bbox = c(aoibbox["xmin"],aoibbox["ymin"],
+                         aoibbox["xmax"],aoibbox["ymax"]),
+                datetime = "2021-06-01/2021-06-30",
+                limit = 500) 
+
+q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # limitates the cloud coverage 
+
+items <- q %>% post_request()
+
+col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 20}) # limitates the cloud coverage 
+S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
+v = cube_view(srs = "EPSG:3857",  
+              extent = list(t0 = "2021-06-01", t1 = "2021-06-30", 
+                            left = aoibbox["xmin"]-1000, right = aoibbox["xmax"]+1000,  
+                            top = aoibbox["ymax"]+1000, bottom = aoibbox["ymin"]-1000), 
+                            dx = 20, dy = 20, dt = "P30D", aggregation = "median", resampling = "average") # Was ist dt?
+
+raster_cube(col, v, mask = S2.mask) %>%
+            select_bands(c("B02","B03","B04")) %>%
+            reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
+            plot(rgb = 3:1, zlim=c(0,1500)) %>% system.time() # Funktioniert noch nicht 
 
 #Retrieve Images in BBox
-items = s |> #(may need to bee transformed?)
-  stac_search(collections = "sentinel-s2-l2a-cogs",
-              bbox = c(bbox_wgs84["xmin"],bbox_wgs84["ymin"],
-                       bbox_wgs84["xmax"],bbox_wgs84["ymax"]), 
-              datetime = "2018-06-01/2018-06-30",
-              limit = 500) |>
-  post_request() 
+# items = s %>% #(may need to bee transformed?)
+  # stac_search(collections = "sentinel-s2-l2a-cogs",
+    #           bbox = c(aoibbox["xmin"],aoibbox["ymin"],
+    #                    aoibbox["xmax"],aoibbox["ymax"]), 
+    #           datetime = "2021-06-01/2021-06-30",
+    #           limit = 500) %>%
+  # post_request() 
 
 #Build Collection
 collection = stac_image_collection(items$features)
