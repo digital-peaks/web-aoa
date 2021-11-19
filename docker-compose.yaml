@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  frontend:
+    image: nschnierer/digital-peaks-web-aoa-frontend:latest
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "8080:80"
+    networks:
+      - default
+    depends_on:
+      - mongodb
+  api:
+    image: nschnierer/digital-peaks-web-aoa-api:latest
+    environment:
+      - NODE_ENV=production
+      - EXPRESS_PORT=9000
+      - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
+    ports:
+      - "9000:9000"
+    networks:
+      - default
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    container_name: "mongodb"
+    restart: always
+    ports:
+      - "27017-27019:27017-27019"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: toor
+      MONGO_INITDB_DATABASE: webaoa
+    volumes:
+      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo/volume:/data/db
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
