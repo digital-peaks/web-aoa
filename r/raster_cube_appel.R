@@ -6,7 +6,7 @@ items <- s %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon in dezimal grad
               datetime = "2020-01-01/2020-12-31",
-              limit = 20) %>%
+              limit = 100) %>%
   post_request() 
 items
 
@@ -14,7 +14,7 @@ items
 q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
                        bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon
                        datetime = "2020-01-01/2020-12-31",
-                       limit = 20)
+                       limit = 100)
 q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
 q %>% post_request() 
 
@@ -25,9 +25,10 @@ col
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 col = stac_image_collection(items$features, asset_names = assets, 
                             property_filter = function(x) {x[["eo:cloud_cover"]] < 20})
+col
 v = cube_view(srs = "EPSG:32632",  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
                                                 left = 400459.27, right = 410597.12,  top = 5762030.85, bottom = 5752938.87),
-              dx = 100, dy = 100, dt = "P1D", aggregation = "median", resampling = "average")
+              dx = 20, dy = 20, dt = "P1D", aggregation = "median", resampling = "average")
 #hier werden die Coords der Eingaemaske in dem gegebene EPSG benoetigt
 
 
