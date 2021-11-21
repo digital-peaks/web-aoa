@@ -28,8 +28,8 @@ library(mapview)
 
 #aoi and polygons
 samplePolygons <- read_sf('samplePolygons.geojson') # First set the working directory to this file
-aoi <- read_sf('aoi.geojson', crs = 4326) # hier müssen die (sollten) die Koordinaten in EPSG 4326 vorliegen
-aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox kann für die Anfrage in R-Stack genutzt werden
+aoi <- read_sf('aoi.geojson', crs = 4326) # hier mï¿½ssen die (sollten) die Koordinaten in EPSG 4326 vorliegen
+aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox kann fï¿½r die Anfrage in R-Stack genutzt werden
 
 #mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
 #mapview(st_geometry(aoi))
@@ -63,12 +63,12 @@ col = stac_image_collection(items$features, asset_names = assets,
                             property_filter = function(x) {x[["eo:cloud_cover"]] < 5})
 col
 
-#Transform of the BBOX Target System
+#Transform of the BBOX
 targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`)
 tragetString <- paste('EPSG:', targetSystem)
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem))
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem))
-#hier müssen die Koordinaten im Extent in dem zuvor gewählten CRS vorliegen -> hier müsste also von 4326 zu 32632
+#hier mï¿½ssen die Koordinaten im Extent in dem zuvor gewï¿½hlten CRS vorliegen -> hier mï¿½sste also von 4326 zu 32632
 #transformiert werden
 v = cube_view(srs = tragetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
                                                  left = aoi_bbox_tranformed[1], right = aoi_bbox_tranformed[3],  top = aoi_bbox_tranformed[4], bottom = aoi_bbox_tranformed[2]),
