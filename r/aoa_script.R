@@ -28,11 +28,12 @@ library(mapview)
 
 #aoi and polygons
 samplePolygons <- read_sf('samplePolygons.geojson') # First set the working directory to this file
-aoi <- read_sf('aoi.geojson') # crs = 4326
+aoi <- read_sf('aoi.geojson', crs = 4326) # hier müssen die (sollten) die Koordinaten in EPSG 4326 vorliegen
+aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox kann für die Anfrage in R-Stack genutzt werden
 
-mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
-mapview(st_geometry(aoi))
-mapview(st_bbox(aoi))
+#mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
+#mapview(st_geometry(aoi))
+#mapview(st_bbox(aoi))
 
 
 #gdalcubes
@@ -41,16 +42,14 @@ s = stac("https://earth-search.aws.element84.com/v0")
 
 items <- s %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
-              bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon in dezimal grad
+              bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
               datetime = "2020-01-01/2020-12-31",
               limit = 100) %>%
   post_request() 
-
 items
-items$features[[4]]$assets$B04
 
 q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
-                       bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon
+                       bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
                        datetime = "2020-01-01/2020-12-31",
                        limit = 100)
 q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
@@ -63,11 +62,17 @@ assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","S
 col = stac_image_collection(items$features, asset_names = assets, 
                             property_filter = function(x) {x[["eo:cloud_cover"]] < 5})
 col
-v = cube_view(srs = "EPSG:32632",  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
-                                                 left = 400459.27, right = 410597.12,  top = 5762030.85, bottom = 5752938.87),
-              dx = 20, dy = 20, dt = "P1D", aggregation = "median", resampling = "average")
-#hier werden die Coords der Eingaemaske in dem gegebene EPSG benoetigt
 
+#Transform of the BBOX Target System
+targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`)
+tragetString <- paste('EPSG:', targetSystem)
+aoi_transformed <- st_transform(aoi, as.numeric(targetSystem))
+aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem))
+#hier müssen die Koordinaten im Extent in dem zuvor gewählten CRS vorliegen -> hier müsste also von 4326 zu 32632
+#transformiert werden
+v = cube_view(srs = tragetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
+                                                 left = aoi_bbox_tranformed[1], right = aoi_bbox_tranformed[3],  top = aoi_bbox_tranformed[4], bottom = aoi_bbox_tranformed[2]),
+              dx = 100, dy = 100, dt = "P1D", aggregation = "median", resampling = "average")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
 gdalcubes_options(threads = 8) 
