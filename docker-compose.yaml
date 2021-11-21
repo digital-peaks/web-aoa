@@ -3,21 +3,28 @@ services:
   frontend:
     image: nschnierer/digital-peaks-web-aoa-frontend:latest
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=dev
     ports:
-      - "8080:80"
+      - "3000:80"
     networks:
       - default
     depends_on:
       - mongodb
   api:
     image: nschnierer/digital-peaks-web-aoa-api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ["start"]
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=dev
       - EXPRESS_PORT=9000
       - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
     ports:
       - "9000:9000"
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
     networks:
       - default
     depends_on:

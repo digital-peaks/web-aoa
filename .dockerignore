@@ -1,4 +1,4 @@
-mongo
+mongo/volume
 node_modules
 .env
 .env.sample
