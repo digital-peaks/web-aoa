@@ -1,4 +1,5 @@
 #Packages
+setwd("~/GitHub/web-aoa/r")
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training
 library(sp) #sp-Package for handlig spatial datasets
@@ -22,19 +23,62 @@ library(rjson)
 library(ggplot2)
 
 # Auch ganz nice
-install.packages("mapview")
+#install.packages("mapview")
 library(mapview)
 
-##############################################################################################
+#aoi and polygons
 samplePolygons <- read_sf('samplePolygons.geojson') # First set the working directory to this file
-plot(st_geometry(samplePolygons))
-mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
-
 aoi <- read_sf('aoi.geojson') # crs = 4326
-plot(st_geometry(aoi))
-mapview(st_geometry(aoi)) # Does nearly the same like the line above but on a real map 
-# ODER: mapview(st_bbox(aoi))
 
+mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
+mapview(st_geometry(aoi))
+mapview(st_bbox(aoi))
+
+
+#gdalcubes
+#install.packages(c("sf", "stars", "magick", "rmarkdown", "ncdf4", "Rcpp", "jsonlite", "RcppProgress", "rstac", "tmap"))
+s = stac("https://earth-search.aws.element84.com/v0")
+
+items <- s %>%
+  stac_search(collections = "sentinel-s2-l2a-cogs",
+              bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon in dezimal grad
+              datetime = "2020-01-01/2020-12-31",
+              limit = 100) %>%
+  post_request() 
+
+items
+items$features[[4]]$assets$B04
+
+q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
+                       bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon
+                       datetime = "2020-01-01/2020-12-31",
+                       limit = 100)
+q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
+q %>% post_request() 
+
+system.time(col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 10}))
+col
+
+assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
+col = stac_image_collection(items$features, asset_names = assets, 
+                            property_filter = function(x) {x[["eo:cloud_cover"]] < 5})
+col
+v = cube_view(srs = "EPSG:32632",  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
+                                                 left = 400459.27, right = 410597.12,  top = 5762030.85, bottom = 5752938.87),
+              dx = 20, dy = 20, dt = "P1D", aggregation = "median", resampling = "average")
+#hier werden die Coords der Eingaemaske in dem gegebene EPSG benoetigt
+
+
+S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
+gdalcubes_options(threads = 8) 
+
+cube = raster_cube(col, v, mask = S2.mask) %>%
+  select_bands(c("B02","B03","B04")) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
+  plot(rgb = 3:1, zlim=c(0,1800)) %>% system.time()
+
+
+############################################################################################################
 #///////
 sentinal2aImage <- #Sentinel2A Image for the Region the Polygons are in
 trainigData <- extract(sentinal2aImage, samplePolygons, df=TRUE) #Extract Training Samples
@@ -55,14 +99,15 @@ q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # limitates the cloud cove
 items <- q %>% post_request()
 
 col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 20}) # limitates the cloud coverage 
-S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
+S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows (?)
+
 v = cube_view(srs = "EPSG:3857",  
               extent = list(t0 = "2021-06-01", t1 = "2021-06-30", 
                             left = aoibbox["xmin"]-1000, right = aoibbox["xmax"]+1000,  
                             top = aoibbox["ymax"]+1000, bottom = aoibbox["ymin"]-1000), 
-                            dx = 20, dy = 20, dt = "P30D", aggregation = "median", resampling = "average") # Was ist dt?
+                            dx = 20, dy = 20, dt = "P1D", aggregation = "mean", resampling = "near") #dt = temporal extend
 
-raster_cube(col, v, mask = S2.mask) %>%
+c = raster_cube(col, v) %>%
             select_bands(c("B02","B03","B04")) %>%
             reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
             plot(rgb = 3:1, zlim=c(0,1500)) %>% system.time() # Funktioniert noch nicht 
@@ -91,3 +136,5 @@ classification <- predict(newPredictionData, model)
 aoa <- aoa(newPredictionData, model)
 aoaArea <- #Spatial extend of the Region in which the Model is not applicable
 newSamples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3) #create sample points inside the area of the aoa (here regular but other methods are possible)
+
+
