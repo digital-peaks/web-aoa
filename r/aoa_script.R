@@ -45,7 +45,7 @@ stac = stac("https://earth-search.aws.element84.com/v0")
 mapview(st_bbox(aoi))
 mapview(st_bbox(samplePolygons))
 
-####################Get Image-Data for AOI
+#############Get Image-Data for AOI
 items_aoi <- stac %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
@@ -91,17 +91,7 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     rsmpl_overview = "nearest"
   )
 
-training_image <-readAll(raster("images/test_training_image_2020-01-01.tif"))
-classification_image <-readAll(raster("images/test_classication_image_2020-01-01.tif"))
-training_image
-classification_image
-
-install.packages("exactextractr")
-library(exactextractr)
-training_data <- exact_extract(training_image, samplePolygons, fun = 'TRUE', append_cols = c('class'))
-training_data
-
-####################Get Image-Data for sample Polygons
+#############Get Image-Data for sample Polygons
 items_poly <- stac %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
@@ -146,22 +136,43 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
-##########################################non working part##################################################################
-predictor <- #raster data
 
-trainData <- extract(predictors,samplePolygons,df=TRUE)
+#############Training
+training_stack <- stack("images/test_training_image_2020-01-01.tif") #load training image as stack
+names(training_stack)<-c("b", "g", "r") #rename bands
+training_stack 
+plotRGB(training_stack, r=3, g=2, b=1, stretch="lin") #plot training image as rgb
 
-model <- train(trainigData[,predictors], #extracted RGB-Values?
-               trainigData$classes, #? Classes for LU/LC?
-               method="rf", #Random Forrest
-               importance=FALSE, #we do not need the most important predictors since we only have "one"
-               ntree = 50, #Number of Trees
-               trControl = trainControl(method="cv", number=3)) #Cross Validation (here 3-fold)
+classification_stack <-stack("images/test_classication_image_2020-01-01.tif") #load classification image 
+names(classification_stack)<-c("b", "g", "r") #rename bands
+classification_stack 
+plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 
-newPredictionData <-  #Sentinel2A Image the Area of Interest covers
-classification <- predict(newPredictionData, model)
-aoa <- aoa(newPredictionData, model)
-aoaArea <- #Spatial extend of the Region in which the Model is not applicable
-newSamples <- points(spsample(aoaArea, n = 1000, "regular"), pch = 3) #create sample points inside the area of the aoa (here regular but other methods are possible)
+training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
+training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #enrich traing data with corresponding classes
 
+predictors <- names(training_stack) #set predictor variables
+response <- "class" #set response value
+#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class")
+#control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE')
 
+set.seed(10) #?
+model <- train(training_data[,predictors],training_data$class, #train model
+               method="rf",tuneGrid=data.frame("mtry"=2), #with random forrest
+               importance=TRUE,
+               ntree=50, #max number of trees
+               trControl=trainControl(method="cv",number=3)) #perform cross validation to assess model
+model
+
+prediction <- predict(classification_stack, model) #predict LU/LC
+prediction
+
+plot(prediction, col = c('#444444', '#0A3C63', '#38761d'), main="Precition") #plot prediction
+#############AOA
+aoa<- aoa(classification_stack , model) #calculate aoa
+aoa
+
+plot(aoa$AOA) #plot area of applicability
+plot(aoa$DI) #plot dissimilarity index
+
+#############Sampling
