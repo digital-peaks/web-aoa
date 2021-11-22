@@ -23,16 +23,16 @@ library(ggplot2)
 library(mapview)
 
 #Parameters
-samplePolygons <- read_sf('samplePolygons.geojson') #sample Polygons
-samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326)
+samplePolygons <- read_sf('samplePolygons.geojson', crs = 4326) #sample Polygons (Dezimalgrad)
+samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
-aoi <- read_sf('aoi.geojson', crs = 4326) #AOI
-aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI
+aoi <- read_sf('aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
+aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
-resolution <- 50 #Resolutin of the Output-Image
+resolution <- 50 #Resolutin of the Output-Image (Meter)
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01"
-t1 <- "2020-12-31"
+t1 <- "2020-03-01"
 timeframe <- paste(t0, '/', t1, sep ="")
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0")
@@ -78,7 +78,17 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
-  plot(rgb = 3:1, zlim=c(0,1800)) %>% system.time()
+  #plot(rgb = 3:1, zlim=c(0,1800))
+  write_tif(
+    dir = "~/GitHub/web-aoa/r",
+    prefix = basename(tempfile(pattern = "cube_")),
+    overviews = FALSE,
+    COG = FALSE,
+    rsmpl_overview = "nearest",
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
 
 ####################Get Image-Data for sample Polygons
 items_poly <- stac %>%
@@ -116,9 +126,22 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
-  plot(rgb = 3:1, zlim=c(0,1800)) %>% system.time()
-
+  #plot(rgb = 3:1, zlim=c(0,1800)) 
+  write_tif(
+    dir = "~/GitHub/web-aoa/r",
+    prefix = basename(tempfile(pattern = "cube_")),
+    overviews = FALSE,
+    COG = FALSE,
+    rsmpl_overview = "nearest",
+    creation_options = NULL,
+    write_json_descr = FALSE,
+    pack = NULL
+  )
 ##########################################non working part##################################################################
+predictor <- #raster data
+
+trainData <- extract(predictors,samplePolygons,df=TRUE)
+
 model <- train(trainigData[,predictors], #extracted RGB-Values?
                trainigData$classes, #? Classes for LU/LC?
                method="rf", #Random Forrest
