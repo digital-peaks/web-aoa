@@ -2,13 +2,16 @@
 library(rstac) 
 s = stac("https://earth-search.aws.element84.com/v0")
 
-items <- s %>%
+
+############################################################################
+items <- s %>% # Dopplung 
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(7.55,52.0,7.70,51.92), #wgs 84 lat lon in dezimal grad
               datetime = "2020-01-01/2020-12-31",
               limit = 100) %>%
   post_request() 
 items
+############################################################################
 
 
 q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
@@ -19,8 +22,11 @@ q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
 q %>% post_request() 
 
 library(gdalcubes)
-system.time(col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 20}))
+
+############################################################################
+system.time(col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 20})) #Dopplung
 col
+############################################################################
 
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 col = stac_image_collection(items$features, asset_names = assets, 
