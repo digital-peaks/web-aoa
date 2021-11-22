@@ -55,12 +55,12 @@ q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
 q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
 q %>% post_request() 
 
-system.time(col <- stac_image_collection(items$features, property_filter = function(x) {x[["eo:cloud_cover"]] < 10}))
+system.time(col <- stac_image_collection(items$features))
 col
 
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 col = stac_image_collection(items$features, asset_names = assets, 
-                            property_filter = function(x) {x[["eo:cloud_cover"]] < 5})
+                            property_filter = function(x) {x[["eo:cloud_cover"]] < 10})
 col
 
 #Transform of the BBOX
