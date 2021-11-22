@@ -68,7 +68,7 @@ targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`)
 tragetString <- paste('EPSG:', targetSystem)
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem))
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem))
-#hier m�ssen die Koordinaten im Extent in dem zuvor gew�hlten CRS vorliegen -> hier m�sste also von 4326 zu 32632
+#hier muessen die Koordinaten im Extent in dem zuvor gewaehlten CRS vorliegen -> hier muesste also von 4326 zu 32632
 #transformiert werden
 v = cube_view(srs = tragetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
                                                  left = aoi_bbox_tranformed[1], right = aoi_bbox_tranformed[3],  top = aoi_bbox_tranformed[4], bottom = aoi_bbox_tranformed[2]),
@@ -76,7 +76,6 @@ v = cube_view(srs = tragetString,  extent = list(t0 = "2020-01-01", t1 = "2020-1
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
 gdalcubes_options(threads = 8) 
-
 cube = raster_cube(col, v, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
