@@ -86,11 +86,8 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(tempfile(pattern = classication_image_name)),
     overviews = FALSE,
-    COG = FALSE,
-    rsmpl_overview = "nearest",
-    creation_options = NULL,
-    write_json_descr = FALSE,
-    pack = NULL
+    COG = TRUE,
+    rsmpl_overview = "nearest"
   )
 
 ####################Get Image-Data for sample Polygons
@@ -135,11 +132,8 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(tempfile(pattern = training_image_name)),
     overviews = FALSE,
-    COG = FALSE,
-    rsmpl_overview = "nearest",
-    creation_options = NULL,
-    write_json_descr = FALSE,
-    pack = NULL
+    COG = TRUE,
+    rsmpl_overview = "nearest"
   )
 ##########################################non working part##################################################################
 predictor <- #raster data
