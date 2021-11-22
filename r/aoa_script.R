@@ -32,11 +32,14 @@ samplePolygons <- read_sf('samplePolygons.geojson') #sample Polygons
 aoi <- read_sf('aoi.geojson', crs = 4326) #AOI
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI
 resolution <- 50 #Resolutin of the Output-Image
+cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
+t0 <- "2020-01-01"
+t1 <- "2020-12-31"
+timeframe <- paste(t0, '/', t1, sep ="")
 
 #mapview(st_geometry(samplePolygons)) 
 #mapview(st_geometry(aoi))
 #mapview(st_bbox(aoi))
-
 
 #gdalcubes
 stac = stac("https://earth-search.aws.element84.com/v0")
@@ -44,21 +47,15 @@ stac = stac("https://earth-search.aws.element84.com/v0")
 items <- stac %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
-              datetime = "2020-01-01/2020-12-31",
+              datetime = timeframe,
               limit = 100) %>%
   post_request() 
 items
 
-q <- stac %>% stac_search(collections = "sentinel-s2-l2a-cogs",
-                       bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
-                       datetime = "2020-01-01/2020-12-31",
-                       limit = 100)
-q %>% post_request() 
-
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
-col = stac_image_collection(items$features, asset_names = assets, 
-                            property_filter = function(x) {x[["eo:cloud_cover"]] < 10})
-col
+collection = stac_image_collection(items$features, asset_names = assets, 
+                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+collection
 
 #Transformation of the BBOX
 targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
@@ -67,13 +64,22 @@ aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
 
 
-v = cube_view(srs = targetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
-                                                 left = aoi_bbox_tranformed[1], right = aoi_bbox_tranformed[3],  top = aoi_bbox_tranformed[4], bottom = aoi_bbox_tranformed[2]),
-              dx = resolution, dy = resolution, dt = "P1D", aggregation = "median", resampling = "average")
+cube_view = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
+                                                 left = aoi_bbox_tranformed[1], 
+                                                 right = aoi_bbox_tranformed[3],  
+                                                 top = aoi_bbox_tranformed[4], 
+                                                 bottom = aoi_bbox_tranformed[2]),
+                                                 dx = resolution, 
+                                                 dy = resolution, 
+                                                 dt = "P1D", 
+                                                 aggregation = "median", 
+                                                 resampling = "average")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
-gdalcubes_options(threads = 8) 
-cube = raster_cube(col, v, mask = S2.mask) %>%
+
+gdalcubes_options(threads = 8) #set Threads for raster cube 
+
+cube_raster = raster_cube(collection, cube_view, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
   plot(rgb = 3:1, zlim=c(0,1800)) %>% system.time()
