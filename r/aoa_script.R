@@ -158,7 +158,7 @@ response <- "class" #set response value
 
 set.seed(10) #?
 model <- train(training_data[,predictors],training_data$class, #train model
-               method="rf",tuneGrid=data.frame("mtry"=2), #with random forrest
+               method="rf",tuneGrid=data.frame("mtry"= 3), #with random forrest
                importance=TRUE,
                ntree=50, #max number of trees
                trControl=trainControl(method="cv",number=3)) #perform cross validation to assess model
@@ -167,7 +167,7 @@ model
 prediction <- predict(classification_stack, model) #predict LU/LC
 prediction
 
-plot(prediction, col = c('#444444', '#0A3C63', '#38761d'), main="Precition") #plot prediction
+plot(prediction, col = c('#444444', '#444444', '#0A3C63', '#38761d'), main="Precition") #plot prediction
 #############AOA
 aoa<- aoa(classification_stack , model) #calculate aoa
 aoa
