@@ -80,7 +80,7 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800))
   write_tif(
-    dir = "~/GitHub/web-aoa/r",
+    dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(tempfile(pattern = "cube_")),
     overviews = FALSE,
     COG = FALSE,
@@ -128,7 +128,7 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800)) 
   write_tif(
-    dir = "~/GitHub/web-aoa/r",
+    dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(tempfile(pattern = "cube_")),
     overviews = FALSE,
     COG = FALSE,
