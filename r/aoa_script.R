@@ -14,6 +14,7 @@ library(gdalUtils) #gdalUtil-Package for tranforming images
 
 #install gdalcubes 
 #install.packages("gdalcubes")
+#install.packages(c("sf", "stars", "magick", "rmarkdown", "ncdf4", "Rcpp", "jsonlite", "RcppProgress", "rstac", "tmap"))
 library(gdalcubes) #for creating data cubes (Mean over many Images to reduce cloud related noise)
 
 #install.packages("rjson")
@@ -27,20 +28,20 @@ library(ggplot2)
 library(mapview)
 
 #aoi and polygons
-samplePolygons <- read_sf('samplePolygons.geojson') # First set the working directory to this file
-aoi <- read_sf('aoi.geojson', crs = 4326) # hier m�ssen die (sollten) die Koordinaten in EPSG 4326 vorliegen
-aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox kann f�r die Anfrage in R-Stack genutzt werden
+samplePolygons <- read_sf('samplePolygons.geojson') #sample Polygons
+aoi <- read_sf('aoi.geojson', crs = 4326) #AOI
+aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI
+resolution <- 50 #Resolutin of the Output-Image
 
-#mapview(st_geometry(samplePolygons)) # Does nearly the same like the line above but on a real map 
+#mapview(st_geometry(samplePolygons)) 
 #mapview(st_geometry(aoi))
 #mapview(st_bbox(aoi))
 
 
 #gdalcubes
-#install.packages(c("sf", "stars", "magick", "rmarkdown", "ncdf4", "Rcpp", "jsonlite", "RcppProgress", "rstac", "tmap"))
-s = stac("https://earth-search.aws.element84.com/v0")
+stac = stac("https://earth-search.aws.element84.com/v0")
 
-items <- s %>%
+items <- stac %>%
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
               datetime = "2020-01-01/2020-12-31",
@@ -48,31 +49,27 @@ items <- s %>%
   post_request() 
 items
 
-q <- s %>% stac_search(collections = "sentinel-s2-l2a-cogs",
+q <- stac %>% stac_search(collections = "sentinel-s2-l2a-cogs",
                        bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
                        datetime = "2020-01-01/2020-12-31",
                        limit = 100)
-q$params$query = "{\"eo:cloud_cover\": {\"lt\": 10}}" # JSON property filter
 q %>% post_request() 
-
-system.time(col <- stac_image_collection(items$features))
-col
 
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 col = stac_image_collection(items$features, asset_names = assets, 
                             property_filter = function(x) {x[["eo:cloud_cover"]] < 10})
 col
 
-#Transform of the BBOX
-targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`)
-tragetString <- paste('EPSG:', targetSystem)
-aoi_transformed <- st_transform(aoi, as.numeric(targetSystem))
-aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem))
-#hier muessen die Koordinaten im Extent in dem zuvor gewaehlten CRS vorliegen -> hier muesste also von 4326 zu 32632
-#transformiert werden
-v = cube_view(srs = tragetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
+#Transformation of the BBOX
+targetSystem <- toString(items$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
+targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
+aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
+aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
+
+
+v = cube_view(srs = targetString,  extent = list(t0 = "2020-01-01", t1 = "2020-12-31",
                                                  left = aoi_bbox_tranformed[1], right = aoi_bbox_tranformed[3],  top = aoi_bbox_tranformed[4], bottom = aoi_bbox_tranformed[2]),
-              dx = 100, dy = 100, dt = "P1D", aggregation = "median", resampling = "average")
+              dx = resolution, dy = resolution, dt = "P1D", aggregation = "median", resampling = "average")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) # clouds and cloud shadows
 gdalcubes_options(threads = 8) 
