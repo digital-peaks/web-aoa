@@ -21,6 +21,7 @@ library(rjson)
 library(ggplot2)
 #install.packages("mapview")
 library(mapview)
+library(raster)
 
 #Parameters
 job_name <- 'test'
@@ -89,6 +90,16 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
+
+training_image <-readAll(raster("images/test_training_image_2020-01-01.tif"))
+classification_image <-readAll(raster("images/test_classication_image_2020-01-01.tif"))
+training_image
+classification_image
+
+install.packages("exactextractr")
+library(exactextractr)
+training_data <- exact_extract(training_image, samplePolygons, fun = 'TRUE', append_cols = c('class'))
+training_data
 
 ####################Get Image-Data for sample Polygons
 items_poly <- stac %>%
