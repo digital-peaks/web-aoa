@@ -34,7 +34,7 @@ aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 resolution <- 50 #Resolutin of the Output-Image (Meter)
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01"
-t1 <- "2020-03-01"
+t1 <- "2020-012-01"
 timeframe <- paste(t0, '/', t1, sep ="")
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0")
@@ -77,7 +77,7 @@ S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
 
-classication_image_name <- paste(job_name, '_classication_image', sep ="") 
+classication_image_name <- paste(job_name, '_classication_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
@@ -123,7 +123,7 @@ S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
 
-training_image_name <- paste(job_name, '_training_image', sep ="") 
+training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
