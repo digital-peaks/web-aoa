@@ -23,6 +23,8 @@ library(ggplot2)
 library(mapview)
 
 #Parameters
+job_name <- 'test'
+
 samplePolygons <- read_sf('samplePolygons.geojson', crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
@@ -75,13 +77,14 @@ S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
 
+classication_image_name <- paste(job_name, '_classication_image', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800))
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
-    prefix = basename(tempfile(pattern = "cube_")),
+    prefix = basename(tempfile(pattern = classication_image_name)),
     overviews = FALSE,
     COG = FALSE,
     rsmpl_overview = "nearest",
@@ -123,13 +126,14 @@ S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
 
+training_image_name <- paste(job_name, '_training_image', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800)) 
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
-    prefix = basename(tempfile(pattern = "cube_")),
+    prefix = basename(tempfile(pattern = training_image_name)),
     overviews = FALSE,
     COG = FALSE,
     rsmpl_overview = "nearest",
