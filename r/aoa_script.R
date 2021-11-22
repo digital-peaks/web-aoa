@@ -25,8 +25,10 @@ library(mapview)
 #Parameters
 samplePolygons <- read_sf('samplePolygons.geojson') #sample Polygons
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326)
+
 aoi <- read_sf('aoi.geojson', crs = 4326) #AOI
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI
+
 resolution <- 50 #Resolutin of the Output-Image
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01"
@@ -53,12 +55,10 @@ collection_aoi = stac_image_collection(items_aoi$features, asset_names = assets,
                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 collection_aoi
 
-#Transformation of the BBOX
 targetSystem <- toString(items_aoi$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
-
 
 cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                  left = aoi_bbox_tranformed[1], 
@@ -93,12 +93,10 @@ collection_poly = stac_image_collection(items_poly$features, asset_names = asset
                                        property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 collection_poly
 
-#Transformation of the BBOX
 targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
 samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
 samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
-
 
 cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              left = samplePolygons_bbox_tranformed[1], 
