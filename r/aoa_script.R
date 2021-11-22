@@ -34,7 +34,7 @@ aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 resolution <- 50 #Resolutin of the Output-Image (Meter)
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01"
-t1 <- "2020-012-01"
+t1 <- "2020-12-01"
 timeframe <- paste(t0, '/', t1, sep ="")
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0")
@@ -84,7 +84,7 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   #plot(rgb = 3:1, zlim=c(0,1800))
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
-    prefix = basename(tempfile(pattern = classication_image_name)),
+    prefix = basename(classication_image_name),
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest"
@@ -130,7 +130,7 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
   #plot(rgb = 3:1, zlim=c(0,1800)) 
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
-    prefix = basename(tempfile(pattern = training_image_name)),
+    prefix = basename(training_image_name),
     overviews = FALSE,
     COG = TRUE,
     rsmpl_overview = "nearest"
