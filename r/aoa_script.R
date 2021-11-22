@@ -85,8 +85,8 @@ cube_raster = raster_cube(collection, cube_view, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04")) %>%
   reduce_time(c("median(B02)", "median(B03)", "median(B04)")) 
   
-cube_raster %>%
-  plot(rgb = 3:1, zlim=c(0,1800)) %>% system.time()
+(cube_raster %>%
+  plot(rgb = 3:1, zlim=c(0,1800)) ) %>% system.time()
 
 
 ############################################################################################################
