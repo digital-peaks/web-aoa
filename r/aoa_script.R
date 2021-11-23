@@ -1,35 +1,23 @@
 #Packages
-setwd("~/GitHub/web-aoa/r")
-# setwd("~/Desktop/WS21:22/Geosoft_2/Github/web-aoa/r") # Josi 
+setwd("~/GitHub/web-aoa/r") #needed for loacal tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training
 library(sp) #sp-Package for handlig spatial datasets
 library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
-#install devtools and gdalUtils
-#install.packages("devtools")
-#devtools:::install_github("gearslaboratory/gdalUtils")
-library(gdalUtils) #gdalUtil-Package for tranforming images
-#install gdalcubes 
-#install.packages("gdalcubes")
-#install.packages(c("sf", "stars", "magick", "rmarkdown", "ncdf4", "Rcpp", "jsonlite", "RcppProgress", "rstac", "tmap"))
-library(gdalcubes) #for creating data cubes (Mean over many Images to reduce cloud related noise)
-#install.packages("rjson")
 library(rjson)
-#install.packages("ggplot2")
 library(ggplot2)
-#install.packages("mapview")
 library(mapview)
 library(raster)
 
 #Parameters
 job_name <- 'test'
 
-samplePolygons <- read_sf('samplePolygons.geojson', crs = 4326) #sample Polygons (Dezimalgrad)
+samplePolygons <- read_sf('test_job/geojson/samplePolygons.geojson', crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
-aoi <- read_sf('aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
+aoi <- read_sf('test_job/geojson/aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
 resolution <- 10 #Resolutin of the Output-Image (Meter)
@@ -135,11 +123,11 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
   )
 
 #############Training
-training_stack <- stack("images/test_training_image_2020-01-01.tif") #load training image as stack
+training_stack <- stack("test_job/images/test_training_image_2020-01-01.tif") #load training image as stack
 names(training_stack)<-c("b", "g", "r", "nir") #rename bands
 training_stack 
 
-classification_stack <-stack("images/test_classication_image_2020-01-01.tif") #load classification image 
+classification_stack <-stack("test_job/images/test_classication_image_2020-01-01.tif") #load classification image 
 names(classification_stack)<-c("b", "g", "r", "nir") #rename bands
 classification_stack 
 
@@ -148,8 +136,8 @@ training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #en
 
 predictors <- names(training_stack) #set predictor variables
 response <- "class" #set response value
-#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class")
-#control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE')
+#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs
+#control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
 
 set.seed(10) #?
 model <- train(training_data[,predictors], training_data$class, #train model
@@ -172,8 +160,8 @@ plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
 
-writeRaster(aoa$AOA,'aoa_aoa',options=c('TFW=YES')) #export aoa
-writeRaster(aoa$DI,'aoa_di',options=c('TFW=YES')) #export dissimilarity index
-writeRaster(prediction,'classication',options=c('TFW=YES')) #export prediction
+writeRaster(aoa$AOA,'images/aoa_aoa',options=c('TFW=YES')) #export aoa
+writeRaster(aoa$DI,'images/aoa_di',options=c('TFW=YES')) #export dissimilarity index
+writeRaster(prediction,'images/classication',options=c('TFW=YES')) #export prediction
 
 #############Sampling
