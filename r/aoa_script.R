@@ -138,12 +138,10 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
 training_stack <- stack("images/test_training_image_2020-01-01.tif") #load training image as stack
 names(training_stack)<-c("b", "g", "r", "nir") #rename bands
 training_stack 
-#plotRGB(training_stack, r=3, g=2, b=1, stretch="lin") #plot training image as rgb
 
 classification_stack <-stack("images/test_classication_image_2020-01-01.tif") #load classification image 
 names(classification_stack)<-c("b", "g", "r", "nir") #rename bands
 classification_stack 
-#plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
 training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #enrich traing data with corresponding classes
@@ -164,15 +162,11 @@ model
 prediction <- predict(classification_stack, model) #predict LU/LC
 prediction
 
-#plot(prediction, col = c("#f9cb9c", "#999999", "#9fc5e8", "#6aa84f"), main="Precition") #plot prediction
 #############AOA
 aoa<- aoa(classification_stack, model) #calculate aoa
 aoa
 
-#plot(aoa$AOA) #plot area of applicability
-#plot(aoa$DI) #plot dissimilarity index
-
-output <- stack(classification_stack, prediction, aoa$AOA, aoa$DI)
+#output <- stack(classification_stack, prediction, aoa$AOA, aoa$DI) #generate compound output
 plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
