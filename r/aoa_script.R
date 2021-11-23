@@ -40,10 +40,7 @@ timeframe <- paste(t0, '/', t1, sep ="")
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0")
 
-#mapview(st_geometry(samplePolygons)) 
-#mapview(st_geometry(aoi))
-mapview(st_bbox(aoi))
-mapview(st_bbox(samplePolygons))
+mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>%
