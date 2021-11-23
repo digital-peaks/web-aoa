@@ -158,9 +158,9 @@ response <- "class" #set response value
 
 set.seed(10) #?
 model <- train(training_data[,predictors], training_data$class, #train model
-               method="rf",tuneGrid=data.frame("mtry"= 4), #with random forrest
+               method="rf", tuneGrid=data.frame("mtry"= 4), #with random forrest
                importance=TRUE,
-               ntree=50, #max number of trees
+               ntree=100, #max number of trees
                trControl=trainControl(method="cv", number=3)) #perform cross validation to assess model
 model
 
@@ -180,4 +180,9 @@ plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification
 plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
+
+writeRaster(aoa$AOA,'aoa_aoa',options=c('TFW=YES')) #export aoa
+writeRaster(aoa$DI,'aoa_di',options=c('TFW=YES')) #export dissimilarity index
+writeRaster(prediction,'classication',options=c('TFW=YES')) #export prediction
+
 #############Sampling

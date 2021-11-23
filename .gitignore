@@ -3,3 +3,10 @@ r/.RData
 r/.Rhistory
 *.tif
 r/images/test_training_image_2020-01-01.tif.aux.xml
+*.grd
+*.gri
+r/aoa_aoa.grd.aux.xml
+r/aoa_di.grd.aux.xml
+r/classication.grd.aux.xml
+r/images/aoa.qgz
+r/images/test_classication_image_2020-01-01.tif.aux.xml
