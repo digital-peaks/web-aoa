@@ -32,7 +32,7 @@ samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 aoi <- read_sf('aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
-resolution <- 50 #Resolutin of the Output-Image (Meter)
+resolution <- 10 #Resolutin of the Output-Image (Meter)
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01"
 t1 <- "2020-12-01"
@@ -80,8 +80,8 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 classication_image_name <- paste(job_name, '_classication_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
-  select_bands(c("B02","B03","B04")) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
+  select_bands(c("B02","B03","B04", "B08")) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800))
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
@@ -126,8 +126,8 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
-  select_bands(c("B02","B03","B04")) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)")) %>%
+  select_bands(c("B02","B03","B04", "B08")) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)")) %>%
   #plot(rgb = 3:1, zlim=c(0,1800)) 
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
@@ -139,14 +139,14 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
 
 #############Training
 training_stack <- stack("images/test_training_image_2020-01-01.tif") #load training image as stack
-names(training_stack)<-c("b", "g", "r") #rename bands
+names(training_stack)<-c("b", "g", "r", "nir") #rename bands
 training_stack 
-plotRGB(training_stack, r=3, g=2, b=1, stretch="lin") #plot training image as rgb
+#plotRGB(training_stack, r=3, g=2, b=1, stretch="lin") #plot training image as rgb
 
 classification_stack <-stack("images/test_classication_image_2020-01-01.tif") #load classification image 
-names(classification_stack)<-c("b", "g", "r") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir") #rename bands
 classification_stack 
-plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
+#plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
 training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #enrich traing data with corresponding classes
@@ -157,22 +157,27 @@ response <- "class" #set response value
 #control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE')
 
 set.seed(10) #?
-model <- train(training_data[,predictors],training_data$class, #train model
-               method="rf",tuneGrid=data.frame("mtry"= 3), #with random forrest
+model <- train(training_data[,predictors], training_data$class, #train model
+               method="rf",tuneGrid=data.frame("mtry"= 4), #with random forrest
                importance=TRUE,
                ntree=50, #max number of trees
-               trControl=trainControl(method="cv",number=3)) #perform cross validation to assess model
+               trControl=trainControl(method="cv", number=3)) #perform cross validation to assess model
 model
 
 prediction <- predict(classification_stack, model) #predict LU/LC
 prediction
 
-plot(prediction, col = c('#444444', '#444444', '#0A3C63', '#38761d'), main="Precition") #plot prediction
+#plot(prediction, col = c("#f9cb9c", "#999999", "#9fc5e8", "#6aa84f"), main="Precition") #plot prediction
 #############AOA
-aoa<- aoa(classification_stack , model) #calculate aoa
+aoa<- aoa(classification_stack, model) #calculate aoa
 aoa
 
+#plot(aoa$AOA) #plot area of applicability
+#plot(aoa$DI) #plot dissimilarity index
+
+output <- stack(classification_stack, prediction, aoa$AOA, aoa$DI)
+plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
+plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
-
 #############Sampling
