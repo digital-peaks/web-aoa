@@ -22,9 +22,9 @@ aoi <- read_sf('test_job/geojson/aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
 resolution <- 10 #Resolutin of the Output-Image (Meter) #Look-Up-Table?
-cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
+cloud_cover <- 95 #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- "2020-01-01" #start timestamp
-t1 <- "2020-10-01" #end timestamp
+t1 <- "2020-12-20" #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
@@ -41,9 +41,20 @@ items_aoi <- stac %>%
   post_request() 
 items_aoi
 
-collection_aoi = stac_image_collection(items_aoi$features, asset_names = assets, 
-                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
-collection_aoi
+collection_aoi = tryCatch({
+  stac_image_collection(items_aoi$features, asset_names = assets, 
+                        property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+  }, warning = function(w) {
+    print("Warning!")
+    #print(w)
+  }, error = function(e) {
+    print("Error!")
+    #print(e)
+  }, finally = {
+})
+
+
+
 
 targetSystem <- toString(items_aoi$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
@@ -57,7 +68,7 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                  bottom = aoi_bbox_tranformed[2]),
                                                  dx = resolution, 
                                                  dy = resolution, 
-                                                 dt = "P1D", 
+                                                 dt = "P1D", #intervall in which images are taken from each time slice
                                                  aggregation = "median", 
                                                  resampling = "average")
 
