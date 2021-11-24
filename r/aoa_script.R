@@ -10,6 +10,7 @@ library(rjson)
 library(ggplot2)
 library(mapview)
 library(raster)
+library(gdalcubes)
 
 #Parameters
 job_name <- 'test'
@@ -20,15 +21,16 @@ samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 aoi <- read_sf('test_job/geojson/aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
-resolution <- 10 #Resolutin of the Output-Image (Meter)
+resolution <- 10 #Resolutin of the Output-Image (Meter) #Look-Up-Table?
 cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
-t0 <- "2020-01-01"
-t1 <- "2020-12-01"
-timeframe <- paste(t0, '/', t1, sep ="")
+t0 <- "2020-01-01" #start timestamp
+t1 <- "2020-10-01" #end timestamp
+timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
-stac = stac("https://earth-search.aws.element84.com/v0")
+stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
+response <- "class" #Value to be used in classification
 
-mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
+#mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>%
@@ -66,8 +68,8 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 classication_image_name <- paste(job_name, '_classication_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04", "B08")) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)")) %>%
-  #plot(rgb = 3:1, zlim=c(0,1800))
+  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)")) %>%
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(classication_image_name),
@@ -112,8 +114,8 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
   select_bands(c("B02","B03","B04", "B08")) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)")) %>%
-  #plot(rgb = 3:1, zlim=c(0,1800)) 
+  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)")) %>%
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(training_image_name),
@@ -124,27 +126,27 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
 
 #############Training
 training_stack <- stack("test_job/images/test_training_image_2020-01-01.tif") #load training image as stack
-names(training_stack)<-c("b", "g", "r", "nir") #rename bands
+names(training_stack)<-c("b", "g", "r", "nir", "ndvi") #rename bands
 training_stack 
 
 classification_stack <-stack("test_job/images/test_classication_image_2020-01-01.tif") #load classification image 
-names(classification_stack)<-c("b", "g", "r", "nir") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir", "ndvi") #rename bands
 classification_stack 
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
 training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #enrich traing data with corresponding classes
 
 predictors <- names(training_stack) #set predictor variables
-response <- "class" #set response value
+response <- response #set response value
 #indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs
 #control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
 
 set.seed(10) #?
 model <- train(training_data[,predictors], training_data$class, #train model
-               method="rf", tuneGrid=data.frame("mtry"= 4), #with random forrest
+               method="rf", tuneGrid=data.frame("mtry"= 5), #with random forrest
                importance=TRUE,
                ntree=100, #max number of trees
-               trControl=trainControl(method="cv", number=3)) #perform cross validation to assess model
+               trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
 model
 
 prediction <- predict(classification_stack, model) #predict LU/LC
@@ -160,8 +162,8 @@ plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
 
-writeRaster(aoa$AOA,'images/aoa_aoa',options=c('TFW=YES')) #export aoa
-writeRaster(aoa$DI,'images/aoa_di',options=c('TFW=YES')) #export dissimilarity index
-writeRaster(prediction,'images/classication',options=c('TFW=YES')) #export prediction
+writeRaster(aoa$AOA,'test_job/images/aoa_aoa',options=c('TFW=YES')) #export aoa
+writeRaster(aoa$DI,'test_job/images/aoa_di',options=c('TFW=YES')) #export dissimilarity index
+writeRaster(prediction,'test_job/images/classication',options=c('TFW=YES')) #export prediction
 
 #############Sampling
