@@ -6,7 +6,7 @@ library(sp) #sp-Package for handlig spatial datasets
 library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
-library(rjson)
+library(rjson) #rjson for reading json input job file
 library(ggplot2)
 library(mapview)
 library(raster)
@@ -35,7 +35,7 @@ response <- parameters$response #Value to be used in classification
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
 
-#images_path <- paste("~/GitHub/web-aoa/r/", parameters$job_name, '_job/images/', sep ="") #needs fixing
+images_path <- paste("~/GitHub/web-aoa/r/", parameters$job_name, '_job/images/', sep ="") #needs fixing
 #mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
 
 #############Get Image-Data for AOI
@@ -82,9 +82,10 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 classication_image_name <- paste(job_name, '_classication_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
-  select_bands(c("B02","B03","B04", "B08")) %>%
+  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>%
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)")) %>%
+  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>%
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(classication_image_name),
@@ -136,9 +137,10 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
-  select_bands(c("B02","B03","B04", "B08")) %>%
+  select_bands(c("B02","B03","B04", "B08", "B11")) %>%
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)")) %>%
+  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>%
   write_tif(
     dir = "~/GitHub/web-aoa/r/images",
     prefix = basename(training_image_name),
@@ -149,11 +151,11 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
 
 #############Training
 training_stack <- stack("test_job/images/test_training_image_2020-01-01.tif") #load training image as stack
-names(training_stack)<-c("b", "g", "r", "nir", "ndvi") #rename bands
+names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi") #rename bands
 training_stack 
 
 classification_stack <-stack("test_job/images/test_classication_image_2020-01-01.tif") #load classification image 
-names(classification_stack)<-c("b", "g", "r", "nir", "ndvi") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi") #rename bands
 classification_stack 
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
@@ -164,9 +166,8 @@ response <- response #set response value
 #indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs
 #control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
 
-set.seed(10) #?
 model <- train(training_data[,predictors], training_data$class, #train model
-               method="rf", tuneGrid=data.frame("mtry"= 5), #with random forrest
+               method="rf", tuneGrid=data.frame("mtry"= 7), #with random forrest
                importance=TRUE,
                ntree=100, #max number of trees
                trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
