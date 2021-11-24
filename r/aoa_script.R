@@ -13,23 +13,29 @@ library(raster)
 library(gdalcubes)
 
 #Parameters
-job_name <- 'test'
+parameters <- fromJSON(file = 'test_job/job_param.json') #read in job paramters
 
-samplePolygons <- read_sf('test_job/geojson/samplePolygons.geojson', crs = 4326) #sample Polygons (Dezimalgrad)
+job_name <- parameters$job_name #name of the job
+
+samplePolygons_path <- paste(parameters$job_name, '_job/geojson/', parameters$samples, sep ="")
+samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
-aoi <- read_sf('test_job/geojson/aoi.geojson', crs = 4326) #AOI (Dezimalgrad)
+aoi_path <- paste(parameters$job_name, '_job/geojson/', parameters$aoi, sep ="")
+aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
-resolution <- 10 #Resolutin of the Output-Image (Meter) #Look-Up-Table?
-cloud_cover <- 15 #Threshold for Cloud-Cover in Sentinel-Images
-t0 <- "2020-01-01" #start timestamp
-t1 <- "2020-12-01" #end timestamp
+resolution <- parameters$resolution #Resolutin of the Output-Image (Meter) #Look-Up-Table?
+cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
+t0 <- parameters$start_timestamp #start timestamp
+t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
+response <- parameters$response #Value to be used in classification
+
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
-response <- "class" #Value to be used in classification
 
+#images_path <- paste("~/GitHub/web-aoa/r/", parameters$job_name, '_job/images/', sep ="") #needs fixing
 #mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
 
 #############Get Image-Data for AOI
@@ -41,16 +47,16 @@ items_aoi <- stac %>%
   post_request() 
 items_aoi
 
-collection_aoi = tryCatch({
-  stac_image_collection(items_aoi$features, asset_names = assets, 
+tryCatch({
+  collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
                         property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
     }, warning = function(w) {
       print("Warning!")
-      #print(w)
     }, error = function(e) {
       print("Error!")
-      #print(e)
     }, finally = {
+      collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
+                                              property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 })
 
 
@@ -96,16 +102,16 @@ items_poly <- stac %>%
   post_request() 
 items_poly
 
-collection_aoi = tryCatch({
+tryCatch({
   collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
   }, warning = function(w) {
     print("Warning!")
-    #print(w)
   }, error = function(e) {
     print("Error!")
-    #print(e)
   }, finally = {
+    collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
+                                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 })
 
 targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
@@ -165,6 +171,7 @@ model <- train(training_data[,predictors], training_data$class, #train model
                ntree=100, #max number of trees
                trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
 model
+#plot(varImp(model)) #insights into what predictors are how important
 
 prediction <- predict(classification_stack, model) #predict LU/LC
 prediction
@@ -179,8 +186,11 @@ plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
 
-writeRaster(aoa$AOA,'test_job/images/aoa_aoa',options=c('TFW=YES')) #export aoa
-writeRaster(aoa$DI,'test_job/images/aoa_di',options=c('TFW=YES')) #export dissimilarity index
-writeRaster(prediction,'test_job/images/classication',options=c('TFW=YES')) #export prediction
+aoa_path <- paste(images_path, "aoa_aoa", sep="")
+di_path <- paste(images_path, "aoa_di", sep="")
+prediction_path <- paste(images_path, "pred", sep="")
+writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
+writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
+writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 
 #############Sampling
