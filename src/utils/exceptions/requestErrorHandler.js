@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const logger = require("../logger");
 
 const {
@@ -23,14 +24,42 @@ const requestErrorHandler = (error, req, res, next) => {
 
     res.status(error.statusCode);
     res.json(error.toJSON());
+  } else if (
+    error instanceof mongoose.Error.ValidationError ||
+    error instanceof mongoose.Error.CastError
+  ) {
+    // Handle mongoose validation or cast errors:
+    let validationError;
+    if (error instanceof mongoose.Error.CastError) {
+      const message =
+        error.kind === "ObjectId"
+          ? "The id must be a string of 12 bytes or a string of 24 hex characters"
+          : error.reason || "Cast Error";
+      validationError = new BadRequestException(message);
+    } else {
+      validationError = new BadRequestException(error.errors);
+    }
+
+    const response = validationError.toJSON();
+    delete response.stack;
+    logger.warn(JSON.stringify(response, null, 2));
+
+    validationError.stack = error.stack;
+
+    res.status(validationError.statusCode);
+    res.json(validationError.toJSON());
   } else {
-    // Unknown or unhandled exception/error.
+    // Handle unknown or unhandled exceptions/errors:
     const unexpected = new InternalServerErrorException(
       "Unexpected server error"
     );
-    unexpected.stack = error.stack;
 
-    logger.error(unexpected);
+    logger.error(error.stack);
+    const response = unexpected.toJSON();
+    delete response.stack;
+    logger.error(JSON.stringify(response, null, 2));
+
+    unexpected.stack = error.stack;
 
     res.status(unexpected.statusCode);
     res.json(unexpected.toJSON());

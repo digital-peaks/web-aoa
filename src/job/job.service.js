@@ -7,14 +7,13 @@ const { NotFoundException } = require("../utils/exceptions");
  * @returns
  */
 const createJob = async (body) => {
-  // TODO: Validate body against mongoose schema
-
-  // Job is the model which we created in job.model.js
-  // A model helps us to access data from the MongoDB easily.
   // Mongoose API documentation - Model:
   // https://mongoosejs.com/docs/api/model.html
-  const job = await Job.create(body);
-  return job;
+
+  // If validation fails, the error will handled as 400
+  await new Job(body).validate();
+
+  return Job.create(body);
 };
 
 /**
@@ -35,6 +34,23 @@ const getJob = async (id) => {
 };
 
 /**
+ * Update existing job.
+ * @param {object} body
+ * @returns
+ */
+const updateJob = async (body) => {
+  await new Job(body).validate();
+
+  const { matchedCount } = await Job.updateOne({ _id: body.id }, body);
+
+  if (matchedCount === 0) {
+    throw new NotFoundException("Unable to update unknown job");
+  }
+
+  return Job.findOne({ _id: body.id });
+};
+
+/**
  * Get all jobs.
  * @returns
  */
@@ -43,8 +59,19 @@ const getJobs = async () => {
   return jobs;
 };
 
+/**
+ * Delete job.
+ * @param {string} id
+ * @returns
+ */
+const deleteJob = async (id) => {
+  return Job.deleteOne({ _id: id });
+};
+
 module.exports = {
   createJob,
   getJob,
+  updateJob,
   getJobs,
+  deleteJob,
 };

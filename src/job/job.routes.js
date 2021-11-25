@@ -27,10 +27,26 @@ router.get(
   })
 );
 
+router.put(
+  "/jobs",
+  asyncHandler(async (req, res) => {
+    const result = await JobService.updateJob(req.body);
+    res.json(result);
+  })
+);
+
 router.get(
   "/jobs",
   asyncHandler(async (req, res) => {
     const result = await JobService.getJobs();
+    res.json(result);
+  })
+);
+
+router.delete(
+  "/jobs/:jobId",
+  asyncHandler(async (req, res) => {
+    const result = await JobService.deleteJob(req.params.jobId);
     res.json(result);
   })
 );

@@ -3,7 +3,10 @@
  */
 class BaseException extends Error {
   constructor(message = "", ...args) {
-    super(message, ...args);
+    // Do not print objects to error stack
+    const messageClean = typeof message === "string" ? message : "";
+    super(messageClean, ...args);
+
     this.statusCode = 500;
     this.name = "Error";
     this.description = message || "";
