@@ -54,7 +54,13 @@
       "no-underscore-dangle": "off",
       "consistent-return": "off",
       "jest/expect-expect": "off",
-      "security/detect-object-injection": "off"
+      "security/detect-object-injection": "off",
+      "prettier/prettier": [
+        "error",
+        {
+          "endOfLine": "auto"
+        }
+      ]
     }
   }
 }
