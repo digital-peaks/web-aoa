@@ -6,5 +6,6 @@
 "end_timestamp": "2020-12-01",
 "response": "class",
 "samples": "samplePolygons.geojson",
-"aoi": "aoi.geojson"
+"aoi": "aoi.geojson",
+"sampling_strategy": "regular"
 }
