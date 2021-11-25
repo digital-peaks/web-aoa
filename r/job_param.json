@@ -7,5 +7,6 @@
 "response": "class",
 "samples": "samplePolygons.geojson",
 "aoi": "aoi.geojson",
-"sampling_strategy": "regular"
+"sampling_strategy": "regular",
+"obj_id": "PID"
 }

@@ -18,11 +18,11 @@ parameters <- fromJSON(file = 'job_param.json') #read in job paramters
 job_name <- parameters$job_name #name of the job
 
 job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="")
-samplePolygons_path <- paste(job_path, parameters$samples, sep ="")
+samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="")
 samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
-aoi_path <- paste(job_path, parameters$aoi, sep ="")
+aoi_path <- paste(job_path, "/", parameters$aoi, sep ="")
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
@@ -33,6 +33,7 @@ t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 response <- parameters$response #Value to be used in classification
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
+key <- parameters$obj_id
 
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
@@ -163,7 +164,7 @@ names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi") #ren
 classification_stack 
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
-training_data <- merge(training_data, samplePolygons, by.x="ID", by.y="PID") #enrich traing data with corresponding classes
+training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
 
 predictors <- names(training_stack) #set predictor variables
 response <- response #set response value
@@ -191,9 +192,9 @@ plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
 plot(aoa$DI) #plot dissimilarity index
 
-aoa_path <- paste(job_path, "aoa_aoa", sep="")
-di_path <- paste(job_path, "aoa_di", sep="")
-prediction_path <- paste(job_path, "pred", sep="")
+aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
+di_path <- paste(job_path, "/", "aoa_di", sep="")
+prediction_path <- paste(job_path, "/", "pred", sep="")
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction

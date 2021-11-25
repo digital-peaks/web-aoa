@@ -27,3 +27,5 @@ mongo/volume/journal/WiredTigerTmplog.0000000003
 *.bson
 mongo/volume/WiredTiger
 mongo/volume/WiredTiger.turtle
+*.tfw
+r/test/pred.tif.aux.xml
