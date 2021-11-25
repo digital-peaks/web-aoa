@@ -1,5 +1,5 @@
 #Packages
-setwd("~/GitHub/web-aoa/r") #needed for loacal tests
+setwd("~/GitHub/web-aoa/r") #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training
 library(sp) #sp-Package for handlig spatial datasets
@@ -7,7 +7,7 @@ library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 library(rjson) #rjson for reading json input job file
-library(ggplot2)
+library(ggplot2) 
 library(mapview)
 library(raster)
 library(gdalcubes)
@@ -17,12 +17,12 @@ parameters <- fromJSON(file = 'job_param.json') #read in job paramters
 
 job_name <- parameters$job_name #name of the job
 
-job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="")
-samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="")
+job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
+samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
 samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
-aoi_path <- paste(job_path, "/", parameters$aoi, sep ="")
+aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
@@ -33,7 +33,7 @@ t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 response <- parameters$response #Value to be used in classification
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
-key <- parameters$obj_id
+key <- parameters$obj_id #attribute to match samples with the response
 
 assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
@@ -182,10 +182,11 @@ model
 prediction <- predict(classification_stack, model) #predict LU/LC
 prediction
 
-#############AOA
+
 aoa<- aoa(classification_stack, model) #calculate aoa
 aoa
 
+#############Raster Export
 #output <- stack(classification_stack, prediction, aoa$AOA, aoa$DI) #generate compound output
 plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 plot(prediction, col = topo.colors(4), main="Precition") #prediction
