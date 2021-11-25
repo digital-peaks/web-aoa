@@ -1,3 +1,6 @@
+/**
+ * Every Exceptions needs to extend from this Class.
+ */
 class BaseException extends Error {
   constructor(message = "", ...args) {
     super(message, ...args);

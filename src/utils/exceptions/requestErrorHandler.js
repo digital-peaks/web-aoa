@@ -7,9 +7,13 @@ const {
   InternalServerErrorException,
 } = require("./index");
 
+/**
+ * Middleware which handles errors and will return them as a proper JSON format.
+ */
 // eslint-disable-next-line no-unused-vars
 const requestErrorHandler = (error, req, res, next) => {
   if (
+    // Please add your new exception here:
     error instanceof BadRequestException ||
     error instanceof UnauthorizedException ||
     error instanceof NotFoundException ||
@@ -20,6 +24,7 @@ const requestErrorHandler = (error, req, res, next) => {
     res.status(error.statusCode);
     res.json(error.toJSON());
   } else {
+    // Unknown or unhandled exception/error.
     const unexpected = new InternalServerErrorException(
       "Unexpected server error"
     );
