@@ -17,3 +17,13 @@ r/test_job/images/aoa_aoa.grd.aux.xml
 r/test_job/images/aoa.qgz
 map.qgz
 r/test_job/images/test_training_image_2020-01-01.tif.aux.xml
+*.wt
+mongo/volume/diagnostic.data/metrics.2021-11-25T14-09-58Z-00000
+*.interim
+mongo/volume/journal/WiredTigerLog.0000000001
+mongo/volume/journal/WiredTigerPreplog.0000000001
+mongo/volume/journal/WiredTigerTmplog.0000000003
+*.lock
+*.bson
+mongo/volume/WiredTiger
+mongo/volume/WiredTiger.turtle
