@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const requestErrorHandler = require("./utils/exceptions/requestErrorHandler");
 
-require("dotenv").config();
+const routes = require("./routes");
 
 const app = express();
 
@@ -11,8 +12,11 @@ app.use(bodyParser.json({ limit: "5mb", type: "application/json" }));
 
 app.use(cors());
 
-app.get("/info", function (req, res) {
-  res.send(`Environment: ${process.env.NODE_ENV || "-"}`);
-});
+// Register routes
+app.use(routes);
+
+// Handle errors and format them to a proper JSON format.
+// Important: Needs to be the last middleware!
+app.use(requestErrorHandler);
 
 module.exports = app;
