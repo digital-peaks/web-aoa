@@ -9,7 +9,7 @@ library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 library(rjson) #rjson for reading json input job file
-library(mapview) #for testing
+# library(mapview) #for testing
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 

@@ -24,14 +24,17 @@ const createJob = async (body) => {
   const jobPath = `/app/r/${jobFolder}`;
 
   await fs.promises.mkdir(jobPath);
-  await fs.promises.copyFile("/app/r/aoi.geojson", `${jobPath}/aoi.geojson`);
   await fs.promises.copyFile(
-    "/app/r/samplePolygons.geojson",
+    "/app/r/test/aoi.geojson",
+    `${jobPath}/aoi.geojson`
+  );
+  await fs.promises.copyFile(
+    "/app/r/test/samplePolygons.geojson",
     `${jobPath}/samplePolygons.geojson`
   );
 
   // Run R script:
-  const ls = spawn("R", ["-e", 'source("/app/aoa_script.R")']);
+  const ls = spawn("R", ["-e", 'source("/app/r/aoa_script.R")']);
 
   ls.stdout.on("data", (data) => {
     logger.info(`stdout: ${data}`);
