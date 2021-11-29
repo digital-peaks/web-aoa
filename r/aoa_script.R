@@ -7,7 +7,6 @@ library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 library(rjson) #rjson for reading json input job file
-library(ggplot2) 
 library(mapview)
 library(raster)
 library(gdalcubes)
@@ -168,7 +167,7 @@ training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enri
 
 predictors <- names(training_stack) #set predictor variables
 response <- response #set response value
-#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs
+#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs 
 #control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
 
 model <- train(training_data[,predictors], training_data$class, #train model
@@ -187,7 +186,6 @@ aoa<- aoa(classification_stack, model) #calculate aoa
 aoa
 
 #############Raster Export
-#output <- stack(classification_stack, prediction, aoa$AOA, aoa$DI) #generate compound output
 plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
 plot(prediction, col = topo.colors(4), main="Precition") #prediction
 plot(aoa$AOA) #plot area of applicability
