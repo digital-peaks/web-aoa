@@ -209,6 +209,7 @@ writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export di
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 
 #############Sampling
-aoa_raster <- stack("test_job/images/aoa_aoa.tif") #load training image as stack
+aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="")
+aoa_raster <- stack(aoa_source_path) #load training image as stack
 mask <- mask(aoa_raster, aoa_raster, maskvalue=0)
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) 
