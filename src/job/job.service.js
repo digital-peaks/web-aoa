@@ -16,7 +16,8 @@ const createJob = async (body) => {
   // If validation fails, the error will handled as 400
   await new Job(body).validate();
 
-  const job = await Job.create(body);
+  // Disable this call for just testing the R script:
+  // const job = await Job.create(body);
 
   // TODO: Dynamic job folder
   // const jobFolder = `${job.id}`;
@@ -48,7 +49,7 @@ const createJob = async (body) => {
     logger.info(`child process exited with code ${code}`);
   });
 
-  return job;
+  return { name: "Dummy", created: "2021-11-29T17:15:45.932Z", id: "123456" };
 };
 
 /**
