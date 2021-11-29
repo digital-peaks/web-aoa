@@ -1,15 +1,15 @@
 #Packages
 setwd("~/GitHub/web-aoa/r") #needed for local tests
 library(CAST) #CAST-Package for performing AOA
-library(caret) #caret-Package for performing training
+library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
 library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 library(rjson) #rjson for reading json input job file
-library(mapview)
-library(raster)
-library(gdalcubes)
+library(mapview) #for testing
+library(raster) #raster-Package for working with various raster formats
+library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 
 #Parameters
 parameters <- fromJSON(file = 'job_param.json') #read in job paramters
@@ -82,12 +82,12 @@ S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
 
-classification_image_name <- paste(job_name, '_classication_image_', sep ="") 
+classification_image_name <- paste(job_name, '_classification_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02", "B03", "B04", "B08", "B11")) %>%
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
   apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>%
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>% #!add Build Up-Index
   write_tif(
     dir = job_path,
     prefix = basename(classification_image_name),
