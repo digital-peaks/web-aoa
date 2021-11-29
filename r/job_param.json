@@ -1,0 +1,13 @@
+{
+"job_name":"test",
+"use_lookup": "false",
+"resolution": 10,
+"cloud_cover": 15,
+"start_timestamp": "2020-01-01",
+"end_timestamp": "2020-12-01",
+"response": "class",
+"samples": "samplePolygons.geojson",
+"aoi": "aoi.geojson",
+"sampling_strategy": "regular",
+"obj_id": "PID"
+}
