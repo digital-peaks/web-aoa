@@ -1,5 +1,7 @@
 #Packages
-setwd("~/GitHub/web-aoa/r") #needed for local tests
+workingDir <- "/app/r"
+
+setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
@@ -14,9 +16,9 @@ library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-te
 #Parameters
 parameters <- fromJSON(file = 'job_param.json') #read in job paramters
 
-job_name <- parameters$job_name #name of the job
+job_name <- parameters$name #name of the job
 
-job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
+job_path <- paste(workingDir, "/", job_name, sep="") #path to the job folder
 samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
 samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
