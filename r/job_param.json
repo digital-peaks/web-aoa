@@ -1,5 +1,6 @@
 {
 "job_name":"test",
+"use_lookup": "false",
 "resolution": 10,
 "cloud_cover": 15,
 "start_timestamp": "2020-01-01",

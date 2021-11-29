@@ -25,7 +25,15 @@ aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
-resolution <- parameters$resolution #Resolutin of the Output-Image (Meter) #Look-Up-Table?
+#select resolution
+if(parameters$use_lookup == "true") {
+  resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+} else {
+  area_aoi <- st_area(aoi_bbox)
+  area_training <- st_area(samplePolygon_bbox)
+}
+
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 t0 <- parameters$start_timestamp #start timestamp
 t1 <- parameters$end_timestamp #end timestamp
@@ -72,8 +80,8 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                  right = aoi_bbox_tranformed[3],  
                                                  top = aoi_bbox_tranformed[4], 
                                                  bottom = aoi_bbox_tranformed[2]),
-                                                 dx = resolution, 
-                                                 dy = resolution, 
+                                                 dx = resolution_aoi, 
+                                                 dy = resolution_aoi, 
                                                  dt = "P1D", #intervall in which images are taken from each time slice
                                                  aggregation = "median", 
                                                  resampling = "average")
@@ -84,10 +92,11 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 classification_image_name <- paste(job_name, '_classification_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
-  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>%
-  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
-  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>% #!add Build Up-Index
+  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
+  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
+  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
+  apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
   write_tif(
     dir = job_path,
     prefix = basename(classification_image_name),
@@ -127,8 +136,8 @@ cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              right = samplePolygons_bbox_tranformed[3],  
                                                              top = samplePolygons_bbox_tranformed[4], 
                                                              bottom = samplePolygons_bbox_tranformed[2]),
-                                                             dx = resolution, 
-                                                             dy = resolution, 
+                                                             dx = resolution_training, 
+                                                             dy = resolution_training, 
                                                              dt = "P1D", 
                                                              aggregation = "median", 
                                                              resampling = "average")
@@ -139,10 +148,11 @@ gdalcubes_options(threads = 8) #set Threads for raster cube
 
 training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
-  select_bands(c("B02","B03","B04", "B08", "B11")) %>%
-  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>%
-  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>%
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)")) %>%
+  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
+  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
+  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
+  apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
   write_tif(
     dir = job_path,
     prefix = basename(training_image_name),
@@ -154,12 +164,12 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
 #############Training
 training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
 training_stack <- stack(training_stack_path) #load training image as stack
-names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi") #rename bands
+names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
 training_stack 
 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
 classification_stack <-stack(classification_stack_path) #load classification image 
-names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
 classification_stack 
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
@@ -171,7 +181,7 @@ response <- response #set response value
 #control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
 
 model <- train(training_data[,predictors], training_data$class, #train model
-               method="rf", tuneGrid=data.frame("mtry"= 7), #with random forrest
+               method="rf", tuneGrid=data.frame("mtry"= 8), #with random forrest
                importance=TRUE,
                ntree=100, #max number of trees
                trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
@@ -186,10 +196,10 @@ aoa<- aoa(classification_stack, model) #calculate aoa
 aoa
 
 #############Raster Export
-plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
-plot(prediction, col = topo.colors(4), main="Precition") #prediction
-plot(aoa$AOA) #plot area of applicability
-plot(aoa$DI) #plot dissimilarity index
+#plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
+#plot(prediction, col = topo.colors(4), main="Precition") #prediction
+#plot(aoa$AOA) #plot area of applicability
+#plot(aoa$DI) #plot dissimilarity index
 
 aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
 di_path <- paste(job_path, "/", "aoa_di", sep="")
