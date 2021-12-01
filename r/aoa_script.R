@@ -30,8 +30,8 @@ if(parameters$use_lookup == "true") {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
-  area_aoi <- st_area(aoi_bbox)
-  area_training <- st_area(samplePolygon_bbox)
+  resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 }
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
@@ -219,7 +219,7 @@ test <- as.data.frame(mydf)
 xy <- mydf[,c(1,2)]
 spdf <- SpatialPointsDataFrame(coords = xy, data = test,
                                proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
-tf <- tempfile(tmpdir = tempdir("~/GitHub/web-aoa/r"))
+tf <- tempfile("test.geojon")
 writeOGR(spdf, tf, "GeoJSON", driver="GeoJSON")
 
 
