@@ -24,7 +24,7 @@ samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dez
 samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
-aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
+aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad) #UL LR
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 
 #select resolution
