@@ -1,5 +1,6 @@
 const fs = require("fs");
-const { spawn } = require("child_process");
+// eslint-disable-next-line
+const child_process = require("child_process");
 const Job = require("./job.model");
 const { NotFoundException } = require("../utils/exceptions");
 const logger = require("../utils/logger");
@@ -24,6 +25,7 @@ const createJob = async (body) => {
   const jobFolder = "1234567";
   const jobPath = `/app/r/${jobFolder}`;
 
+  // eslint-disable-next-line
   await fs.promises.mkdir(jobPath);
   await fs.promises.copyFile(
     "/app/r/test/aoi.geojson",
@@ -35,7 +37,7 @@ const createJob = async (body) => {
   );
 
   // Run R script:
-  const ls = spawn("R", ["-e", 'source("/app/r/aoa_script.R")']);
+  const ls = child_process.spawn("R", ["-e", 'source("/app/r/aoa_script.R")']);
 
   ls.stdout.on("data", (data) => {
     logger.info(`stdout: ${data}`);
