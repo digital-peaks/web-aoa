@@ -30,8 +30,8 @@ if(parameters$use_lookup == "true") {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
-  area_aoi <- st_area(aoi_bbox)
-  area_training <- st_area(samplePolygon_bbox)
+#  area_aoi <- st_area(aoi)
+#  area_training <- st_area(samplePolygon_bbox)
 }
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
@@ -213,3 +213,4 @@ aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="")
 aoa_raster <- stack(aoa_source_path) #load training image as stack
 mask <- mask(aoa_raster, aoa_raster, maskvalue=0)
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) 
+
