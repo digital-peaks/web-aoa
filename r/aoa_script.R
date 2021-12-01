@@ -204,23 +204,29 @@ aoa
 aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
 di_path <- paste(job_path, "/", "aoa_di", sep="")
 prediction_path <- paste(job_path, "/", "pred", sep="")
+geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="")
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 
 #############Sampling
-aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="")
+aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
-mask <- mask(aoa_raster, aoa_raster, maskvalue=0)
-points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) 
+mask <- mask(aoa_raster, aoa_raster, maskvalue=0) #create mask from aoa where model is not applicable
+points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) #create sample points on mask
 
-mydf <- points@coords
-test <- as.data.frame(mydf)
-xy <- mydf[,c(1,2)]
-spdf <- SpatialPointsDataFrame(coords = xy, data = test,
+proj_string <- raster::crs(aoa_raster) #retrieve CRS
+
+points_dataframe <- points@coords #extract coords
+points_dataframe_source <- as.data.frame(points_dataframe) #convert coords to dataframe
+xy <- points_dataframe[,c(1,2)] #get fields
+
+spatial_points_dataframe <- SpatialPointsDataFrame(coords = xy, data = points_dataframe_source, #create spatial_points_dataframe
                                proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
-tf <- tempfile("test.geojon")
-writeOGR(spdf, tf, "GeoJSON", driver="GeoJSON")
+
+spatial_points_dataframe_converted <- st_as_sf(spatial_points_dataframe) #convert spatial_points_dataframe
+st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set target system as crs
+st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #export as GeoJSON
 
 
 
