@@ -30,8 +30,8 @@ if(parameters$use_lookup == "true") {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
-#  area_aoi <- st_area(aoi)
-#  area_training <- st_area(samplePolygon_bbox)
+  area_aoi <- st_area(aoi_bbox)
+  area_training <- st_area(samplePolygon_bbox)
 }
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
@@ -59,14 +59,14 @@ items_aoi
 
 tryCatch({
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
-                        property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
-    }, warning = function(w) {
-      print("Warning!")
-    }, error = function(e) {
-      print("Error!")
-    }, finally = {
-      collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
-                                              property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+                                          property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+}, warning = function(w) {
+  print("Warning!")
+}, error = function(e) {
+  print("Error!")
+}, finally = {
+  collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
+                                          property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 })
 
 
@@ -76,15 +76,15 @@ aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
 
 cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
-                                                 left = aoi_bbox_tranformed[1], 
-                                                 right = aoi_bbox_tranformed[3],  
-                                                 top = aoi_bbox_tranformed[4], 
-                                                 bottom = aoi_bbox_tranformed[2]),
-                                                 dx = resolution_aoi, 
-                                                 dy = resolution_aoi, 
-                                                 dt = "P1D", #intervall in which images are taken from each time slice
-                                                 aggregation = "median", 
-                                                 resampling = "average")
+                                                             left = aoi_bbox_tranformed[1], 
+                                                             right = aoi_bbox_tranformed[3],  
+                                                             top = aoi_bbox_tranformed[4], 
+                                                             bottom = aoi_bbox_tranformed[2]),
+                          dx = resolution_aoi, 
+                          dy = resolution_aoi, 
+                          dt = "P1D", #intervall in which images are taken from each time slice
+                          aggregation = "median", 
+                          resampling = "average")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
@@ -117,13 +117,13 @@ items_poly
 tryCatch({
   collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
-  }, warning = function(w) {
-    print("Warning!")
-  }, error = function(e) {
-    print("Error!")
-  }, finally = {
-    collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
-                                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+}, warning = function(w) {
+  print("Warning!")
+}, error = function(e) {
+  print("Error!")
+}, finally = {
+  collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
+                                          property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 })
 
 targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
@@ -132,15 +132,15 @@ samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSyst
 samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
 
 cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
-                                                             left = samplePolygons_bbox_tranformed[1], 
-                                                             right = samplePolygons_bbox_tranformed[3],  
-                                                             top = samplePolygons_bbox_tranformed[4], 
-                                                             bottom = samplePolygons_bbox_tranformed[2]),
-                                                             dx = resolution_training, 
-                                                             dy = resolution_training, 
-                                                             dt = "P1D", 
-                                                             aggregation = "median", 
-                                                             resampling = "average")
+                                                              left = samplePolygons_bbox_tranformed[1], 
+                                                              right = samplePolygons_bbox_tranformed[3],  
+                                                              top = samplePolygons_bbox_tranformed[4], 
+                                                              bottom = samplePolygons_bbox_tranformed[2]),
+                           dx = resolution_training, 
+                           dy = resolution_training, 
+                           dt = "P1D", 
+                           aggregation = "median", 
+                           resampling = "average")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 
@@ -213,4 +213,15 @@ aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="")
 aoa_raster <- stack(aoa_source_path) #load training image as stack
 mask <- mask(aoa_raster, aoa_raster, maskvalue=0)
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) 
+
+mydf <- points@coords
+test <- as.data.frame(mydf)
+xy <- mydf[,c(1,2)]
+spdf <- SpatialPointsDataFrame(coords = xy, data = test,
+                               proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+tf <- tempfile(tmpdir = tempdir("~/GitHub/web-aoa/r"))
+writeOGR(spdf, tf, "GeoJSON", driver="GeoJSON")
+
+
+
 
