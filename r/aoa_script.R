@@ -226,6 +226,9 @@ model <- train(training_data[,predictors], training_data$class, #train model
                trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
 print("--> model trained")
 model
+model_path <- paste(job_path, "/", "model.rds", sep="")
+saveRDS(model, model_path)
+print("--> model exported")
 
 prediction <- predict(classification_stack, model) #predict LU/LC
 print("--> classification done")
