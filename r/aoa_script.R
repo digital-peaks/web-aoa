@@ -1,5 +1,5 @@
 #Packages
-start_time <- Sys.time()
+start_time <- Sys.time() #set start time 
 workingDir <- "/app/r" #set working directory
 print("--> working directory set")
 
@@ -22,9 +22,12 @@ print("--> parameters read")
 job_name <- parameters$job_name #name of the job
 
 job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
-samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
-samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
-samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
+
+if(parameters$use_pretrained_model == "false") {
+  samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
+  samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+  samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
+}
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
@@ -128,79 +131,83 @@ print("--> AOI raster cube created")
 print("--> classification image written")
 
 #############Get Image-Data for sample Polygons
-items_poly <- stac %>% #retrieve sentinel bands for area for training
-  stac_search(collections = "sentinel-s2-l2a-cogs",
-              bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
-              datetime = timeframe,
-              limit = 100) %>%
-  post_request() 
-print("--> stac items for AFT retrieved")
-items_poly
-
-tryCatch({
-  collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
-                                          property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
-}, warning = function(w) {
-  print("Warning!")
-}, error = function(e) {
-  print("Error!")
-}, finally = {
-  collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
-                                          property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
-  print("--> image collection for AFT created")
-})
-
-targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
-print("--> target crs retrieved")
-targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
-samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
-print("--> AFT tranformed to target crs")
-samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
-print("--> AFT bbox tranformed to target crs")
-
-cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
-                                                              left = samplePolygons_bbox_tranformed[1], 
-                                                              right = samplePolygons_bbox_tranformed[3],  
-                                                              top = samplePolygons_bbox_tranformed[4], 
-                                                              bottom = samplePolygons_bbox_tranformed[2]),
-                           dx = resolution_training, 
-                           dy = resolution_training, 
-                           dt = "P1D", 
-                           aggregation = "median", 
-                           resampling = "average")
-print("--> AFT cube view created")
-
-S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
-print("--> cloud mask created")
-
-gdalcubes_options(threads = 8) #set Threads for raster cube 
-print("--> gdalcubes threads set to 8")
-
-training_image_name <- paste(job_name, '_training_image_', sep ="") 
-cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
-  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
-  apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
-  apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
-  apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
-  write_tif(
-    dir = job_path,
-    prefix = basename(training_image_name),
-    overviews = FALSE,
-    COG = TRUE,
-    rsmpl_overview = "nearest"
-  )
-print("--> AFT raster cube created")
-print("--> training image written")
-print("--> raster data retrieval done")
+if(parameters$use_pretrained_model == "false") {
+  items_poly <- stac %>% #retrieve sentinel bands for area for training
+    stac_search(collections = "sentinel-s2-l2a-cogs",
+                bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
+                datetime = timeframe,
+                limit = 100) %>%
+    post_request() 
+  print("--> stac items for AFT retrieved")
+  items_poly
+  
+  tryCatch({
+    collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
+                                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+  }, warning = function(w) {
+    print("Warning!")
+  }, error = function(e) {
+    print("Error!")
+  }, finally = {
+    collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
+                                            property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+    print("--> image collection for AFT created")
+  })
+  
+  targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
+  print("--> target crs retrieved")
+  targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
+  samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
+  print("--> AFT tranformed to target crs")
+  samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
+  print("--> AFT bbox tranformed to target crs")
+  
+  cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
+                                                                left = samplePolygons_bbox_tranformed[1], 
+                                                                right = samplePolygons_bbox_tranformed[3],  
+                                                                top = samplePolygons_bbox_tranformed[4], 
+                                                                bottom = samplePolygons_bbox_tranformed[2]),
+                             dx = resolution_training, 
+                             dy = resolution_training, 
+                             dt = "P1D", 
+                             aggregation = "median", 
+                             resampling = "average")
+  print("--> AFT cube view created")
+  
+  S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
+  print("--> cloud mask created")
+  
+  gdalcubes_options(threads = 8) #set Threads for raster cube 
+  print("--> gdalcubes threads set to 8")
+  
+  training_image_name <- paste(job_name, '_training_image_', sep ="") 
+  cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
+    select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
+    apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
+    apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
+    apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
+    reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
+    write_tif(
+      dir = job_path,
+      prefix = basename(training_image_name),
+      overviews = FALSE,
+      COG = TRUE,
+      rsmpl_overview = "nearest"
+    )
+  print("--> AFT raster cube created")
+  print("--> training image written")
+  print("--> raster data retrieval done")
+}
 
 #############Training
-training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
-training_stack <- stack(training_stack_path) #load training image as stack
-print("--> training stac created")
-names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
-print("--> band names assigned")
-training_stack 
+if(parameters$use_pretrained_model == "false") {
+  training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
+  training_stack <- stack(training_stack_path) #load training image as stack
+  print("--> training stac created")
+  names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
+  print("--> band names assigned")
+  training_stack 
+}
 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
 classification_stack <-stack(classification_stack_path) #load classification image 
@@ -209,31 +216,35 @@ names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "bae
 print("--> band names assigned")
 classification_stack 
 
-training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
-print("--> training data extracted from raster")
-training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
-print("--> response assigned to training data")
+if(parameters$use_pretrained_model == "false") {
+  training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
+  print("--> training data extracted from raster")
+  training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
+  print("--> response assigned to training data")
 
-predictors <- names(training_stack) #set predictor variables
-print("--> predictors set")
-response <- response #set response value
-print("--> response set")
-
-model <- train(training_data[,predictors], training_data$class, #train model
-               method="rf", tuneGrid=data.frame("mtry"= 8), #with random forrest
-               importance=TRUE,
-               ntree=100, #max number of trees
-               trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
-print("--> model trained")
-model
-model_path <- paste(job_path, "/", "model.rds", sep="")
-saveRDS(model, model_path)
-print("--> model exported")
+  predictors <- names(training_stack) #set predictor variables
+  print("--> predictors set")
+  response <- response #set response value
+  print("--> response set")
+  
+  model <- train(training_data[,predictors], training_data$class, #train model
+                 method="rf", tuneGrid=data.frame("mtry"= 8), #with random forrest
+                 importance=TRUE,
+                 ntree=100, #max number of trees
+                 trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
+  print("--> model trained")
+  model
+  model_path <- paste(job_path, "/", "model.rds", sep="")
+  saveRDS(model, model_path)
+  print("--> model exported")
+} else {
+  model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
+  model <- readRDS(model_path)
+}
 
 prediction <- predict(classification_stack, model) #predict LU/LC
 print("--> classification done")
 prediction
-
 
 aoa<- aoa(classification_stack, model) #calculate aoa
 print("--> AOA calculation done done")
@@ -274,10 +285,9 @@ st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set targe
 st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #export as GeoJSON
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
-end_time <- Sys.time()
+end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", end_time - start_time, " Seconds", sep="")
 print(overall_time)
-
 
 
 
