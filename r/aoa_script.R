@@ -272,8 +272,8 @@ st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
 end_time <- Sys.time()
-print("--> processing time")
-print(end_time - start_time)
+overall_time <- paste("--> processing time: ", end_time - start_time, " Seconds", sep="")
+print(overall_time)
 
 
 
