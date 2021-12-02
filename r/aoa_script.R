@@ -1,5 +1,7 @@
 #Packages
-workingDir <- "/app/r"
+start_time <- Sys.time()
+workingDir <- "/app/r" #set working directory
+print("--> working directory set")
 
 setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
@@ -9,13 +11,13 @@ library(rgdal) #rgdal-Packge for performing spatial operations
 library(sf) #sf-package for performing spatial operation on spheroids
 library(rstac) #rstac for accessing STAC-Catalogue 
 library(rjson) #rjson for reading json input job file
-# library(mapview) #for testing
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
-
+print("--> libraries imported")
 
 #Parameters
 parameters <- fromJSON(file = 'job_param.json') #read in job paramters
+print("--> parameters read")
 
 job_name <- parameters$job_name #name of the job
 
@@ -27,6 +29,8 @@ samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
+print("--> directories set")
+print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
@@ -36,28 +40,35 @@ if(parameters$use_lookup == "true") {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 }
+print("--> output resolution set")
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
+print("--> cloudcover set")
 t0 <- parameters$start_timestamp #start timestamp
 t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
+print("--> timeframe set")
 response <- parameters$response #Value to be used in classification
+print("--> response set")
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
+print("--> sampling strategy set")
 key <- parameters$obj_id #attribute to match samples with the response
+print("--> key attribute set")
 
-assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
+assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL") #bands to be retrieved via stac
+print("--> assets set")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
-
-#images_path <- paste("~/GitHub/web-aoa/r/", parameters$job_name, '_job/images/', sep ="") #needs fixing
-#mapview(c(st_geometry(samplePolygons),st_geometry(aoi))) #plot aoi and sample Polygons
+print("--> stac initialized")
+print("--> basic processing setup done")
 
 #############Get Image-Data for AOI
-items_aoi <- stac %>%
+items_aoi <- stac %>% #retrieve sentinel bands for area of interest
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
               datetime = timeframe,
               limit = 100) %>%
   post_request() 
+print("--> stac items for AOI retrieved")
 items_aoi
 
 tryCatch({
@@ -70,13 +81,16 @@ tryCatch({
 }, finally = {
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+  print("--> image collection for AOI created")
 })
 
-
 targetSystem <- toString(items_aoi$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
+print("--> target crs retrieved")
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
+print("--> AOI tranformed to target crs")
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
+print("--> AOI bbox tranformed to target crs")
 
 cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              left = aoi_bbox_tranformed[1], 
@@ -88,10 +102,13 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                           dt = "P1D", #intervall in which images are taken from each time slice
                           aggregation = "median", 
                           resampling = "average")
+print("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
+print("--> cloud mask created")
 
-gdalcubes_options(threads = 8) #set Threads for raster cube 
+gdalcubes_options(threads = 8) #set Threads for raster cube
+print("--> gdalcubes threads set to 8")
 
 classification_image_name <- paste(job_name, '_classification_image_', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
@@ -107,14 +124,17 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
+print("--> AOI raster cube created")
+print("--> classification image written")
 
 #############Get Image-Data for sample Polygons
-items_poly <- stac %>%
+items_poly <- stac %>% #retrieve sentinel bands for area for training
   stac_search(collections = "sentinel-s2-l2a-cogs",
               bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
               datetime = timeframe,
               limit = 100) %>%
   post_request() 
+print("--> stac items for AFT retrieved")
 items_poly
 
 tryCatch({
@@ -127,12 +147,16 @@ tryCatch({
 }, finally = {
   collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+  print("--> image collection for AFT created")
 })
 
 targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
+print("--> target crs retrieved")
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
 samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
+print("--> AFT tranformed to target crs")
 samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
+print("--> AFT bbox tranformed to target crs")
 
 cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                               left = samplePolygons_bbox_tranformed[1], 
@@ -144,10 +168,13 @@ cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                            dt = "P1D", 
                            aggregation = "median", 
                            resampling = "average")
+print("--> AFT cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
+print("--> cloud mask created")
 
 gdalcubes_options(threads = 8) #set Threads for raster cube 
+print("--> gdalcubes threads set to 8")
 
 training_image_name <- paste(job_name, '_training_image_', sep ="") 
 cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
@@ -163,60 +190,72 @@ cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) 
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
+print("--> AFT raster cube created")
+print("--> training image written")
+print("--> raster data retrieval done")
 
 #############Training
 training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
 training_stack <- stack(training_stack_path) #load training image as stack
+print("--> training stac created")
 names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
+print("--> band names assigned")
 training_stack 
 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
 classification_stack <-stack(classification_stack_path) #load classification image 
+print("--> classification stac created")
 names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
+print("--> band names assigned")
 classification_stack 
 
 training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
+print("--> training data extracted from raster")
 training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
+print("--> response assigned to training data")
 
 predictors <- names(training_stack) #set predictor variables
+print("--> predictors set")
 response <- response #set response value
-#indices <- CreateSpacetimeFolds(training_data, spacevar = "ID", k=3, class="class") #for ffs 
-#control <- trainControl(method="cv", index = indices$index, savePredictions = 'TRUE') #for ffs
+print("--> response set")
 
 model <- train(training_data[,predictors], training_data$class, #train model
                method="rf", tuneGrid=data.frame("mtry"= 8), #with random forrest
                importance=TRUE,
                ntree=100, #max number of trees
                trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
+print("--> model trained")
 model
-#plot(varImp(model)) #insights into what predictors are how important
 
 prediction <- predict(classification_stack, model) #predict LU/LC
+print("--> classification done")
 prediction
 
 
 aoa<- aoa(classification_stack, model) #calculate aoa
+print("--> AOA calculation done done")
 aoa
+print("--> geostatistical processing done")
 
 #############Raster Export
-#plotRGB(classification_stack, r=3, g=2, b=1, stretch="lin") #plot classification image as rgb
-#plot(prediction, col = topo.colors(4), main="Precition") #prediction
-#plot(aoa$AOA) #plot area of applicability
-#plot(aoa$DI) #plot dissimilarity index
-
 aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
 di_path <- paste(job_path, "/", "aoa_di", sep="")
 prediction_path <- paste(job_path, "/", "pred", sep="")
 geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="")
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
+print("--> AOA image written")
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
+print("--> DI image written")
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
+print("--> prediction image written")
 
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
 mask <- mask(aoa_raster, aoa_raster, maskvalue=0) #create mask from aoa where model is not applicable
+print("--> AOA mask created")
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) #create sample points on mask
+print("--> suggested locations for extra training polygons created")
 
 proj_string <- raster::crs(aoa_raster) #retrieve CRS
 
@@ -230,6 +269,11 @@ spatial_points_dataframe <- SpatialPointsDataFrame(coords = xy, data = points_da
 spatial_points_dataframe_converted <- st_as_sf(spatial_points_dataframe) #convert spatial_points_dataframe
 st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set target system as crs
 st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #export as GeoJSON
+print("--> suggested locations for extra training polygons written")
+print("--> processing done")
+end_time <- Sys.time()
+print("--> processing time")
+print(end_time - start_time)
 
 
 
