@@ -23,10 +23,13 @@ job_name <- parameters$job_name #name of the job
 
 job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
 
-if(parameters$use_pretrained_model == "false") {
+if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
+  print("--> new model will be trained")
+} else {
+  print("--> pretrained model will be employed")
 }
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
@@ -131,7 +134,7 @@ print("--> AOI raster cube created")
 print("--> classification image written")
 
 #############Get Image-Data for sample Polygons
-if(parameters$use_pretrained_model == "false") {
+if(parameters$use_pretrained_model == "false") { #if a pretrained model is used to trainig data must be retrieved
   items_poly <- stac %>% #retrieve sentinel bands for area for training
     stac_search(collections = "sentinel-s2-l2a-cogs",
                 bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
@@ -200,7 +203,7 @@ if(parameters$use_pretrained_model == "false") {
 }
 
 #############Training
-if(parameters$use_pretrained_model == "false") {
+if(parameters$use_pretrained_model == "false") { #if a pretrained model is used no training stack must be created
   training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
@@ -216,7 +219,7 @@ names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "bae
 print("--> band names assigned")
 classification_stack 
 
-if(parameters$use_pretrained_model == "false") {
+if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
   training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
   print("--> training data extracted from raster")
   training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
@@ -237,7 +240,7 @@ if(parameters$use_pretrained_model == "false") {
   model_path <- paste(job_path, "/", "model.rds", sep="")
   saveRDS(model, model_path)
   print("--> model exported")
-} else {
+} else { #use pretrained model if one is provided
   model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
   model <- readRDS(model_path)
 }
