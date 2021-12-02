@@ -1,5 +1,9 @@
+const fs = require("fs");
+// eslint-disable-next-line
+const child_process = require("child_process");
 const Job = require("./job.model");
 const { NotFoundException } = require("../utils/exceptions");
+const logger = require("../utils/logger");
 
 /**
  * Create a new job.
@@ -13,7 +17,41 @@ const createJob = async (body) => {
   // If validation fails, the error will handled as 400
   await new Job(body).validate();
 
-  return Job.create(body);
+  // Disable this call for just testing the R script:
+  // const job = await Job.create(body);
+
+  // TODO: Dynamic job folder
+  // const jobFolder = `${job.id}`;
+  const jobFolder = "1234567";
+  const jobPath = `/app/r/${jobFolder}`;
+
+  // eslint-disable-next-line
+  await fs.promises.mkdir(jobPath);
+  await fs.promises.copyFile(
+    "/app/r/test/aoi.geojson",
+    `${jobPath}/aoi.geojson`
+  );
+  await fs.promises.copyFile(
+    "/app/r/test/samplePolygons.geojson",
+    `${jobPath}/samplePolygons.geojson`
+  );
+
+  // Run R script:
+  const ls = child_process.spawn("R", ["-e", 'source("/app/r/aoa_script.R")']);
+
+  ls.stdout.on("data", (data) => {
+    logger.info(`stdout: ${data}`);
+  });
+
+  ls.stderr.on("data", (data) => {
+    logger.info(`stderr: ${data}`);
+  });
+
+  ls.on("close", (code) => {
+    logger.info(`child process exited with code ${code}`);
+  });
+
+  return { name: "Dummy", created: "2021-11-29T17:15:45.932Z", id: "123456" };
 };
 
 /**

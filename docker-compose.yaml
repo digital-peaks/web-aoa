@@ -25,6 +25,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
+      - ./r:/app/r
     networks:
       - default
     depends_on:
