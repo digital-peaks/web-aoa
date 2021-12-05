@@ -243,6 +243,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
 } else { #use pretrained model if one is provided
   model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
   model <- readRDS(model_path)
+  print("--> model imported")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
