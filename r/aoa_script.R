@@ -19,7 +19,7 @@ print("--> libraries imported")
 parameters <- fromJSON(file = 'job_param.json') #read in job paramters
 print("--> parameters read")
 
-job_name <- parameters$job_name #name of the job
+job_name <- parameters$name #name of the job
 
 job_path <- paste("/app/r", "/", job_name, sep="") #path to the job folder
 
