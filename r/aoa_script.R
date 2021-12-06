@@ -21,7 +21,7 @@ print("--> parameters read")
 
 job_name <- parameters$job_name #name of the job
 
-job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
+job_path <- paste("/app/r", "/", job_name, sep="") #path to the job folder
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
@@ -292,6 +292,3 @@ print("--> processing done")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="")
 print(overall_time)
-
-
-
