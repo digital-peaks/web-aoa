@@ -35,6 +35,8 @@ jobs:
           tags: |
             nschnierer/digital-peaks-web-aoa-api:latest
           push: ${{ github.ref == 'refs/heads/main' }}
+          cache-from: type=registry,ref=nschnierer/digital-peaks-web-aoa-api:latest
+          cache-to: type=inline
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
