@@ -207,7 +207,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
-  names(training_stack)<-c("b", "g", "r", "nir", "swir","ndvi" "bsi", "baei") #rename bands
+  names(training_stack)<-c("b", "g", "r", "nir", "swir","ndvi", "bsi", "baei") #rename bands
   print("--> band names assigned")
   training_stack 
 }
@@ -215,7 +215,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
 classification_stack <-stack(classification_stack_path) #load classification image 
 print("--> classification stac created")
-names(classification_stack)<-c("b", "g", "r", "nir", "swir","ndvi" "bsi", "baei") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir", "swir","ndvi", "bsi", "baei") #rename bands
 print("--> band names assigned")
 classification_stack 
 
