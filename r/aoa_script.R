@@ -121,8 +121,8 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
   apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
-  apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
+  apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% #Built-up Area Extraction Index
+  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(B11)", "median(NDVI)", "median(BSI)", "median(BAEI)")) %>% 
   write_tif(
     dir = job_path,
     prefix = basename(classification_image_name),
@@ -188,8 +188,8 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
     apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
     apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
-    apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
-    reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
+    apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% #Built-up Area Extraction Index
+    reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(B11)", "median(NDVI)", "median(BSI)", "median(BAEI)")) %>% 
     write_tif(
       dir = job_path,
       prefix = basename(training_image_name),
@@ -207,7 +207,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
-  names(training_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
+  names(training_stack)<-c("b", "g", "r", "nir", "swir","ndvi" "bsi", "baei") #rename bands
   print("--> band names assigned")
   training_stack 
 }
@@ -215,7 +215,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
 classification_stack <-stack(classification_stack_path) #load classification image 
 print("--> classification stac created")
-names(classification_stack)<-c("b", "g", "r", "nir", "ndvi", "swir", "bsi", "baei") #rename bands
+names(classification_stack)<-c("b", "g", "r", "nir", "swir","ndvi" "bsi", "baei") #rename bands
 print("--> band names assigned")
 classification_stack 
 
@@ -290,7 +290,7 @@ st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
 end_time <- Sys.time() #set end time 
-overall_time <- paste("--> processing time: ", end_time - start_time, " Seconds", sep="")
+overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="")
 print(overall_time)
 
 
