@@ -15,6 +15,7 @@ library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 print("--> libraries imported")
 
+
 #Parameters
 parameters <- fromJSON(file = 'job_param.json') #read in job paramters
 print("--> parameters read")

@@ -11,5 +11,5 @@
   "sampling_strategy": "regular",
   "obj_id": "PID",
   "use_pretrained_model": "false",
-  "model" : "model.rds"
+  "model": "model.rds"
 }
