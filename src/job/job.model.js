@@ -9,6 +9,37 @@ const jobSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  use_lookup: {
+    type: Boolean,
+    required: true,
+  },
+  resolution: {
+    type: Number,
+    required: true,
+  },
+  cloud_cover: {
+    type: Number,
+    required: true,
+  },
+  start_timestamp: {
+    type: Date,
+    required: true,
+  },
+  end_timestamp: {
+    type: Date,
+    required: true,
+  },
+  sampling_strategy: {
+    type: String,
+    required: true,
+  },
+  use_pretrained_model: {
+    type: Boolean,
+    default: false,
+  },
+  model: {
+    type: String,
+  },
   created: { type: Date, default: Date.now },
 });
 
