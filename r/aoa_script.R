@@ -15,13 +15,18 @@ library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 print("--> libraries imported")
 
+
+
+
+
+
 #Parameters
-parameters <- fromJSON(file = 'job_param.json') #read in job paramters
+parameters <- fromJSON(file = '~/Github/web-aoa/r/job_param.json') #read in job paramters
 print("--> parameters read")
 
 job_name <- parameters$job_name #name of the job
 
-job_path <- paste("~/GitHub/web-aoa/r", "/", job_name, sep="") #path to the job folder
+job_path <- paste("~/GitHub/web-aoa/r/test", "/", job_name, sep="") #path to the job folder
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
@@ -37,6 +42,21 @@ aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 print("--> directories set")
 print("--> AOI and AFT set")
+
+
+##Test
+pointa <- c(aoi_bbox[1],aoi_bbox[2])
+pointb <- c(aoi_bbox[1],aoi_bbox[4])
+pointc <- c(aoi_bbox[3],aoi_bbox[2])
+pointd <- c(aoi_bbox[3],aoi_bbox[4])
+matrixA <- matrix(c(aoi_bbox[1],aoi_bbox[2]), ncol=2)
+matrixB <- matrix(c(pointc,pointd), ncol=2)
+distance_between_point_a_b <- spDistsN1(matrixA,pointb, longlat = TRUE)
+
+area <- distance_between_point_a_b[2]*distance_between_point_a_b[1]
+
+
+
 
 #select resolution
 if(parameters$use_lookup == "true") {
@@ -124,7 +144,7 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
   reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
   write_tif(
-    dir = job_path,
+    dir = "~/GitHub/web-aoa/r/test",
     prefix = basename(classification_image_name),
     overviews = FALSE,
     COG = TRUE,
@@ -191,7 +211,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% # Built-up Area Extraction Index
     reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(NDVI)", "median(B11)", "median(BSI)", "median(BAEI)")) %>% 
     write_tif(
-      dir = job_path,
+      dir = "~/GitHub/web-aoa/r/test",
       prefix = basename(training_image_name),
       overviews = FALSE,
       COG = TRUE,
