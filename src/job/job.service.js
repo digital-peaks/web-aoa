@@ -24,7 +24,7 @@ const createJob = async (body, isDemo = true) => {
   const jobPath = `/app/r/${jobFolder}`;
 
   const parametersR = convertForR(job);
-  logger.info("R parameters:", JSON.stringify(parametersR));
+  logger.info(`R parameters: ${JSON.stringify(parametersR)}`);
 
   // eslint-disable-next-line
   await fs.promises.mkdir(jobPath);
@@ -51,26 +51,26 @@ const createJob = async (body, isDemo = true) => {
   }
 
   // Run R script:
-  const ls = child_process.spawn("R", [
+  const script = child_process.spawn("R", [
     "-e",
     'source("/app/r/aoa_script.R")',
     "--args",
     jobFolder,
   ]);
 
-  ls.stdout.on("data", (data) => {
+  script.stdout.on("data", (data) => {
     logger.info(`stdout: ${data}`);
   });
 
-  ls.stderr.on("data", (data) => {
+  script.stderr.on("data", (data) => {
     logger.info(`stderr: ${data}`);
   });
 
-  ls.on("close", (code) => {
+  script.on("close", (code) => {
     logger.info(`child process exited with code ${code}`);
   });
 
-  return { name: "Dummy", created: "2021-11-29T17:15:45.932Z", id: "123456" };
+  return job;
 };
 
 /**

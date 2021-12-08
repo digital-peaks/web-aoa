@@ -23,7 +23,7 @@ job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
-parameters <- fromJSON(file = pase(job_path, "/", "job_param.json", sep="")) #read in job paramters
+parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job paramters
 print("--> parameters read")
 
 

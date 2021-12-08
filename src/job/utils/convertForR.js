@@ -26,13 +26,34 @@ const convertForR = (job) => {
   let start_timestamp = "2020-01-01";
   let end_timestamp = "2020-12-01";
   if (job.start_timestamp) {
-    start_timestamp = format(new Date(job.start_timestamp), "YYYY-MM-dd");
+    start_timestamp = format(new Date(job.start_timestamp), "yyyy-MM-dd");
   }
   if (job.end_timestamp) {
-    end_timestamp = format(new Date(job.end_timestamp), "YYYY-MM-dd");
+    end_timestamp = format(new Date(job.end_timestamp), "yyyy-MM-dd");
   }
 
-  return { ...defaultValues, ...job, start_timestamp, end_timestamp };
+  const {
+    name,
+    use_lookup,
+    resolution,
+    cloud_cover,
+    sampling_strategy,
+    use_pretrained_model,
+    model,
+  } = job;
+
+  return {
+    ...defaultValues,
+    name,
+    use_lookup,
+    resolution,
+    cloud_cover,
+    sampling_strategy,
+    use_pretrained_model,
+    model,
+    start_timestamp,
+    end_timestamp,
+  };
 };
 
 module.exports = convertForR;

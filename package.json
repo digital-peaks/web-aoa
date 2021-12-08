@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon src/index.js",
+    "start": "nodemon --ignore r/ src/index.js",
     "start:prod": "node src/index.js",
     "test:unit": "jest src",
     "lint": "eslint src"
