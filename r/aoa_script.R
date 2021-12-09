@@ -34,29 +34,25 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
 } else {
   tryCatch({
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
-    model <- readRDS(model_path)
-    model_bands <- 	colnames(model$ptype)
-    available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #bands to be retrieved via stac
-    if(length(model$ptype) > length(available_bands)) {
-      print("--> given model eploys to many predictors")
-      print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
-      print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
-      stop("Error!")
+    model <- readRDS(model_path) 
+    model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
+    available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
+    if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      stop()
     }
-    for(i in 1:length(model_bands)){
+    for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) {
-        print("--> given model eploys a non-available predictor")
-        print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
-        print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
-        stop("Error!")
+        stop()
       }
     }
   }, warning = function(w) {
     print("Warning!")
   }, error = function(e) {
     print("Error!")
+    print("--> given model employs non-available predictor")
+    print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
+    print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
   }, finally = {
-    print("--> model checked")
   })
 }
 
@@ -68,7 +64,7 @@ print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
-  #hier kommt die Lookup-Table hin
+  #!!!!!hier kommt die Lookup-Table hin!!!!
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
@@ -296,9 +292,9 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   saveRDS(model, model_path)
   print("--> model exported")
   } else { #use pretrained model if one is provided
-  model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
-  model <- readRDS(model_path)
-  print("--> model imported")
+    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
+    model <- readRDS(model_path)
+    print("--> model imported")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
