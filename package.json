@@ -4,14 +4,15 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon src/index.js",
+    "start": "nodemon --ignore r/ src/index.js",
     "start:prod": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "jest src",
     "lint": "eslint src"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "date-fns": "^2.27.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
