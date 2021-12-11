@@ -1,9 +1,10 @@
 #Packages
 start_time <- Sys.time() #set start time 
-workingDir <- "/app/r" #set working directory
+#workingDir <- "/app/r" #set working directory
+setwd("~/GitHub/web-aoa/r") #needed for local tests
 print("--> working directory set")
 
-setwd(workingDir) #needed for local tests
+#setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
@@ -26,14 +27,35 @@ print(paste("--> Job path: ", job_path, sep=""))
 parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job paramters
 print("--> parameters read")
 
-
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
   print("--> new model will be trained")
 } else {
-  print("--> pretrained model will be employed")
+  tryCatch({
+    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
+    model <- readRDS(model_path) 
+    model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
+    available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
+    if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      stop()
+    }
+    for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
+      if(model_bands[i]%in%available_bands == FALSE) {
+        stop()
+      }
+    }
+    print("--> pretrained model valid")
+  }, warning = function(w) {
+    print("Warning!")
+  }, error = function(e) {
+    print("Error!")
+    print("--> given model employs non-available predictor")
+    print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
+    print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
+  }, finally = {
+  })
 }
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
@@ -44,6 +66,7 @@ print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
+  #!!!!!hier kommt die Lookup-Table hin!!!!
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
@@ -65,7 +88,7 @@ print("--> sampling strategy set")
 key <- parameters$obj_id #attribute to match samples with the response
 print("--> key attribute set")
 
-assets = c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL") #bands to be retrieved via stac
+assets = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL") #bands to be retrieved via stac
 print("--> assets set")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
 print("--> stac initialized")
@@ -119,14 +142,27 @@ print("--> cloud mask created")
 
 gdalcubes_options(threads = 8) #set Threads for raster cube
 print("--> gdalcubes threads set to 8")
-
-classification_image_name <- paste(job_name, '_classification_image_', sep ="") 
+classification_image_name <- paste('classification_image', sep ="") 
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
-  select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
+  select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
   apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
   apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% #Built-up Area Extraction Index
-  reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(B11)", "median(NDVI)", "median(BSI)", "median(BAEI)")) %>% 
+  reduce_time(c("median(B01)", 
+                "median(B02)", 
+                "median(B03)", 
+                "median(B04)", 
+                "median(B05)", 
+                "median(B06)",
+                "median(B07)",
+                "median(B08)",
+                "median(B8A)",
+                "median(B09)",
+                "median(B11)",
+                "median(B12)",
+                "median(NDVI)", 
+                "median(BSI)", 
+                "median(BAEI)")) %>%  
   write_tif(
     dir = job_path,
     prefix = basename(classification_image_name),
@@ -187,13 +223,27 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   gdalcubes_options(threads = 8) #set Threads for raster cube 
   print("--> gdalcubes threads set to 8")
   
-  training_image_name <- paste(job_name, '_training_image_', sep ="") 
+  training_image_name <- paste('training_image', sep ="") 
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
-    select_bands(c("B02", "B03", "B04", "B08", "B11")) %>% #B, G, R, NIR, SWIR
+    select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
     apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
     apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
     apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% #Built-up Area Extraction Index
-    reduce_time(c("median(B02)", "median(B03)", "median(B04)", "median(B08)", "median(B11)", "median(NDVI)", "median(BSI)", "median(BAEI)")) %>% 
+    reduce_time(c("median(B01)", 
+                  "median(B02)", 
+                  "median(B03)", 
+                  "median(B04)", 
+                  "median(B05)", 
+                  "median(B06)",
+                  "median(B07)",
+                  "median(B08)",
+                  "median(B8A)",
+                  "median(B09)",
+                  "median(B11)",
+                  "median(B12)",
+                  "median(NDVI)", 
+                  "median(BSI)", 
+                  "median(BAEI)")) %>% 
     write_tif(
       dir = job_path,
       prefix = basename(training_image_name),
@@ -211,15 +261,15 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
-  names(training_stack)<-c("b", "g", "r", "nir", "swir","ndvi", "bsi", "baei") #rename bands
+  names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
   print("--> band names assigned")
   training_stack 
 }
 
 classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
-classification_stack <-stack(classification_stack_path) #load classification image 
+classification_stack <- stack(classification_stack_path) #load classification image 
 print("--> classification stac created")
-names(classification_stack)<-c("b", "g", "r", "nir", "swir","ndvi", "bsi", "baei") #rename bands
+names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
 print("--> band names assigned")
 classification_stack 
 
@@ -233,21 +283,20 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   print("--> predictors set")
   response <- response #set response value
   print("--> response set")
-  
   model <- train(training_data[,predictors], training_data$class, #train model
-                 method="rf", tuneGrid=data.frame("mtry"= 8), #with random forrest
-                 importance=TRUE,
-                 ntree=100, #max number of trees
-                 trControl=trainControl(method="cv", number=5)) #perform cross validation to assess model
+                  method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
+                  importance=TRUE,
+                  ntree=parameters$procedure$random_forrest$n_tree, #max number of trees
+                  trControl=trainControl(method="cv", number=parameters$procedure$random_forrest$cross_validation_folds)) #perform cross validation to assess model
   print("--> model trained")
   model
   model_path <- paste(job_path, "/", "model.rds", sep="")
   saveRDS(model, model_path)
   print("--> model exported")
-} else { #use pretrained model if one is provided
-  model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
-  model <- readRDS(model_path)
-  print("--> model imported")
+  } else { #use pretrained model if one is provided
+    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
+    model <- readRDS(model_path)
+    print("--> model imported")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC

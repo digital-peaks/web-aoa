@@ -1,5 +1,5 @@
 {
-  "name": "1234567",
+  "name": "test",
   "use_lookup": "false",
   "resolution": 10,
   "cloud_cover": 15,
@@ -10,6 +10,13 @@
   "aoi": "aoi.geojson",
   "sampling_strategy": "regular",
   "obj_id": "PID",
-  "use_pretrained_model": "false",
-  "model": "model.rds"
+  "use_pretrained_model": "true",
+  "model": "model.rds",
+  "procedure":  {
+	"selected": "rf",
+	"random_forrest": {
+		"n_tree": 800,
+		"cross_validation_folds": 5
+	}
+  }
 }
