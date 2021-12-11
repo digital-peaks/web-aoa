@@ -45,6 +45,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
         stop()
       }
     }
+    print("--> pretrained model valid")
   }, warning = function(w) {
     print("Warning!")
   }, error = function(e) {
