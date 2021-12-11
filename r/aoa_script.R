@@ -1,10 +1,10 @@
 #Packages
 start_time <- Sys.time() #set start time 
-#workingDir <- "/app/r" #set working directory
-setwd("~/GitHub/web-aoa/r") #needed for local tests
+workingDir <- "/app/r" #set working directory
+#setwd("~/GitHub/web-aoa/r") #needed for local tests
 print("--> working directory set")
 
-#setwd(workingDir) #needed for local tests
+setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
