@@ -10,7 +10,7 @@
   "aoi": "aoi.geojson",
   "sampling_strategy": "regular",
   "obj_id": "PID",
-  "use_pretrained_model": "true",
+  "use_pretrained_model": "false",
   "model": "model.rds",
   "procedure":  {
 	"selected": "rf",
