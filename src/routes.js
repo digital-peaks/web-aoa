@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.use("/", require("./job/job.routes"));
 router.use("/", require("./file/file.routes"));
+router.use("/", require("./docs/docs.routes"));
 
 module.exports = router;
