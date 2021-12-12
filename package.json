@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon --ignore r/ src/index.js",
+    "start": "nodemon --ignore r/ --ignore files/ src/index.js",
     "start:prod": "node src/index.js",
     "test:unit": "jest src",
     "lint": "eslint src"
@@ -17,6 +17,7 @@
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
     "mongoose": "^6.0.13",
+    "multer": "^1.4.4",
     "winston": "^3.3.3"
   },
   "devDependencies": {
