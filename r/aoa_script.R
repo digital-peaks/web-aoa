@@ -1,10 +1,10 @@
 #Packages
 start_time <- Sys.time() #set start time 
-workingDir <- "/app/r" #set working directory
-#setwd("~/GitHub/web-aoa/r") #needed for local tests
+#workingDir <- "/app/r" #set working directory
+#setwd(workingDir) #needed for local tests
+setwd("~/GitHub/web-aoa/r") #needed for local tests
 print("--> working directory set")
 
-setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
@@ -16,11 +16,13 @@ library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 print("--> libraries imported")
 
-args = commandArgs(trailingOnly=TRUE)
-job_name <- args[1] #name of the job
-print(paste("--> Get job id from args:", job_name))
+#args = commandArgs(trailingOnly=TRUE)
+#job_name <- args[1] #name of the job
+#print(paste("--> Get job id from args:", job_name))
 
-job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
+job_name <- "test"
+#job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
+job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
@@ -61,7 +63,6 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
-print("--> directories set")
 print("--> AOI and AFT set")
 
 #select resolution
@@ -71,7 +72,8 @@ if(parameters$use_lookup == "true") {
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
-  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
+  print("--> custom resolution will be used")
 }
 print("--> output resolution set")
 
