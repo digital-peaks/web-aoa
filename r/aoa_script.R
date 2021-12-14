@@ -1,6 +1,6 @@
 #Packages
 start_time <- Sys.time() #set start time 
-workingDir <- "/app/r" #set working directory
+workingDir <- "/app/jobs" #set working directory
 #setwd("~/GitHub/web-aoa/r") #needed for local tests
 print("--> working directory set")
 
@@ -20,7 +20,7 @@ args = commandArgs(trailingOnly=TRUE)
 job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
-job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
+job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters

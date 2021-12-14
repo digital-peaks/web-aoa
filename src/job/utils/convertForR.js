@@ -13,13 +13,15 @@ const convertForR = (job) => {
     cloud_cover: 15,
     start_timestamp: "2020-01-01",
     end_timestamp: "2020-12-01",
-    response: "class",
-    samples: "samplePolygons.geojson",
-    aoi: "aoi.geojson",
+    samples_class: "class",
     sampling_strategy: "regular",
     obj_id: "PID",
     use_pretrained_model: "false",
+
+    // Files:
     model: "model.rds",
+    samples: "samples.geojson",
+    aoi: "aoi.geojson",
   };
 
   // Format date-time to just a date:

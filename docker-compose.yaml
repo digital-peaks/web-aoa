@@ -26,7 +26,7 @@ services:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
       - ./r:/app/r
-      - ./files:/app/files
+      - ./jobs:/app/jobs
     networks:
       - default
     depends_on:

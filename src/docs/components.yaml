@@ -7,6 +7,8 @@ components:
           type: string
         name:
           type: string
+        area_of_interest:
+          type: object
         use_lookup:
           type: boolean
         resolution:
@@ -34,36 +36,31 @@ components:
         sampling_strategy: "regular"
         use_pretrained_model: false
         created: "2021-12-12T11:19:36.420Z"
-
-    File:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        extension:
-          type: string
-        original_name:
-          type: string
-        mime_type:
-          type: string
-        size:
-          type: number
-          description: "In bytes"
-        user_id:
-          type: number
-        created:
-          type: date-time
-      example:
-        id: "61b283a5d9fcd9b0bad90187"
-        name: "61b283a5d9fcd9b0bad90187.geojson"
-        extension: "geojson"
-        original_name: "AOI.geojson"
-        mime_type: "application/geo+json"
-        size: 882
-        user_id: 0
-        created: "2021-12-12T11:19:36.420Z"
+        area_of_interest:
+          {
+            "type": "FeatureCollection",
+            "features":
+              [
+                {
+                  "type": "Feature",
+                  "properties": {},
+                  "geometry":
+                    {
+                      "type": "Polygon",
+                      "coordinates":
+                        [
+                          [
+                            [7.571640014648437, 51.93653958505235],
+                            [7.608976364135742, 51.93653958505235],
+                            [7.608976364135742, 51.96521171889782],
+                            [7.571640014648437, 51.96521171889782],
+                            [7.571640014648437, 51.93653958505235],
+                          ],
+                        ],
+                    },
+                },
+              ],
+          }
 
     BaseException:
       type: object
