@@ -1,0 +1,118 @@
+components:
+  schemas:
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        use_lookup:
+          type: boolean
+        resolution:
+          type: number
+        cloud_cover:
+          type: number
+        start_timestamp:
+          type: date-time
+        end_timestamp:
+          type: date-time
+        sampling_strategy:
+          type: string
+        use_pretrained_model:
+          type: boolean
+        created:
+          type: date-time
+      example:
+        id: "61b5dac80ba4add8236ed484"
+        name: "Job name"
+        use_lookup: false
+        resolution: 10
+        cloud_cover: 15
+        start_timestamp: "2020-01-01T00:00:00.000Z"
+        end_timestamp: "2020-06-01T00:00:00.000Z"
+        sampling_strategy: "regular"
+        use_pretrained_model: false
+        created: "2021-12-12T11:19:36.420Z"
+
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        extension:
+          type: string
+        original_name:
+          type: string
+        mime_type:
+          type: string
+        size:
+          type: number
+          description: "In bytes"
+        user_id:
+          type: number
+        created:
+          type: date-time
+      example:
+        id: "61b283a5d9fcd9b0bad90187"
+        name: "61b283a5d9fcd9b0bad90187.geojson"
+        extension: "geojson"
+        original_name: "AOI.geojson"
+        mime_type: "application/geo+json"
+        size: 882
+        user_id: 0
+        created: "2021-12-12T11:19:36.420Z"
+
+    BaseException:
+      type: object
+      properties:
+        statusCode:
+          type: number
+        name:
+          type: string
+        message:
+          type: string
+
+  responses:
+    BadRequestException:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseException"
+          example:
+            statusCode: 400
+            name: "Bad Request"
+            message: ""
+    InternalServerErrorException:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseException"
+          example:
+            statusCode: 400
+            name: "Internal Server Error"
+            message: ""
+    NotFoundException:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseException"
+          example:
+            statusCode: 404
+            name: "Not Found"
+            message: ""
+    UnauthorizedException:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseException"
+          example:
+            statusCode: 401
+            name: "Unauthorized"
+            message: ""
