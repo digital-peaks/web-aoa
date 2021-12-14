@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
-#workingDir <- "/app/r" #set working directory
-#setwd(workingDir) #needed for local tests
-setwd("~/GitHub/web-aoa/r") #needed for local tests
+workingDir <- "/app/r" #set working directory
+setwd(workingDir) #needed for local tests
+#setwd("~/GitHub/web-aoa/r") #needed for local tests
 print("--> working directory set")
 
 library(CAST) #CAST-Package for performing AOA
@@ -20,8 +20,8 @@ print("--> libraries imported")
 #job_name <- args[1] #name of the job
 #print(paste("--> Get job id from args:", job_name))
 
-job_name <- "test"
-#job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
+#job_name <- "test"
+job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
 job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
 
@@ -172,6 +172,10 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
+filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="")
+file <- filename
+file.rename(filename, paste(job_path, "/", "classification_image.tif", sep=""))
+
 print("--> AOI raster cube created")
 print("--> classification image written")
 
@@ -253,6 +257,10 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
       COG = TRUE,
       rsmpl_overview = "nearest"
     )
+  filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="")
+  file <- filename
+  file.rename(filename, paste(job_path, "/", "training_image.tif", sep=""))
+  
   print("--> AFT raster cube created")
   print("--> training image written")
   print("--> raster data retrieval done")
