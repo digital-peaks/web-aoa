@@ -32,9 +32,11 @@ const router = express.Router();
  *               samples:
  *                 type: string
  *                 format: binary
+ *                 description: ".json, .geojson, .gpkg"
  *               model:
  *                 type: string
  *                 format: binary
+ *                 description: ".rds"
  *               job:
  *                 type: object
  *                 required:

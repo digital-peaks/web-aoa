@@ -14,7 +14,14 @@ const { convertForR } = require("./utils");
 const MAX_UPLOAD_SIZE_MB =
   Number.parseInt(process.env.FILES_MAX_UPLOAD_SIZE_MB, 10) || 10;
 
-const SAMPLES_MIME_TYPES = ["application/geo+json", "application/json"];
+const SAMPLES_MIME_TYPES = [
+  // GeoJSON (.geojson, .json):
+  "application/geo+json",
+  "application/json",
+  // GeoPackage (.gpkg):
+  "application/octet-stream",
+  "application/x-sqlite3",
+];
 
 const MODEL_MIME_TYPES = [""];
 
@@ -43,7 +50,7 @@ const deleteJob = async (id) => {
  * @param {object} body
  * @returns
  */
-const createJob = async (bodyRaw, files, isDemo = true) => {
+const createJob = async (bodyRaw, files, isDemo = false) => {
   // Parse and validate body
   const body = JSON.parse(bodyRaw);
   await new Job(body).validate();
@@ -93,6 +100,15 @@ const createJob = async (bodyRaw, files, isDemo = true) => {
   const jobPath = path.join(JOBS_FOLDER, jobFolder);
 
   const parametersR = convertForR(job);
+
+  if (samplesFile) {
+    // set file name with right extension for the R script:
+    const extension = (samplesFile.originalname || "").search(/\.gpkg$/i)
+      ? "gpkg"
+      : "geosjon";
+    parametersR.samples = `samples.${extension}`;
+  }
+
   logger.info(`R parameters: ${JSON.stringify(parametersR)}`);
 
   try {
@@ -144,7 +160,7 @@ const createJob = async (bodyRaw, files, isDemo = true) => {
     try {
       // eslint-disable-next-line security/detect-non-literal-fs-filename
       await fs.promises.writeFile(
-        path.join(jobPath, "aoi.geojson"),
+        path.join(jobPath, parametersR.aoi),
         // Stringify and format it with spaces:
         JSON.stringify(job.area_of_interest, null, 2),
         "utf8"
@@ -153,7 +169,7 @@ const createJob = async (bodyRaw, files, isDemo = true) => {
       if (samplesFile) {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         await fs.promises.writeFile(
-          path.join(jobPath, "samples.geojson"),
+          path.join(jobPath, parametersR.samples),
           samplesFile.buffer
         );
       }
@@ -161,7 +177,7 @@ const createJob = async (bodyRaw, files, isDemo = true) => {
       if (modelFile) {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         await fs.promises.writeFile(
-          path.join(jobPath, "model.rds"),
+          path.join(jobPath, parametersR.model),
           modelFile.buffer
         );
       }
