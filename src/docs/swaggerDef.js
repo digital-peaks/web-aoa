@@ -9,6 +9,7 @@ const swaggerDef = {
     version,
     license: {
       name: "MIT",
+      url: "https://github.com/digital-peaks/web-aoa/blob/main/LICENSE",
     },
   },
   servers: [

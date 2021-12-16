@@ -7,7 +7,8 @@ const router = express.Router();
 
 const specs = swaggerJsdoc({
   swaggerDefinition,
-  apis: ["src/docs/*.yaml", "src/**/*.routes.js"],
+  // put it in the right order:
+  apis: ["src/docs/*.yaml", "src/job/job.routes.js", "src/**/*.routes.js"],
 });
 
 router.use("/docs", swaggerUi.serve);
