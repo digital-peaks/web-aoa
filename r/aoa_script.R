@@ -1,10 +1,12 @@
 #Packages
 start_time <- Sys.time() #set start time 
-workingDir <- "/app/jobs" #set working directory
-#setwd("~/GitHub/web-aoa/r") #needed for local tests
+
+workingDir <- "/app/jobs" #set working directory 
+setwd(workingDir) #needed for local tests
+#setwd("~/GitHub/web-aoa/r") #for local tests
+
 print("--> working directory set")
 
-setwd(workingDir) #needed for local tests
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
@@ -20,7 +22,10 @@ args = commandArgs(trailingOnly=TRUE)
 job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
+#job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
+#job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
+
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
@@ -61,7 +66,6 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
-print("--> directories set")
 print("--> AOI and AFT set")
 
 #select resolution
@@ -71,7 +75,8 @@ if(parameters$use_lookup == "true") {
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
-  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
+  print("--> custom resolution will be used")
 }
 print("--> output resolution set")
 
@@ -170,6 +175,10 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
+filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="")
+file <- filename
+file.rename(filename, paste(job_path, "/", "classification_image.tif", sep=""))
+
 print("--> AOI raster cube created")
 print("--> classification image written")
 
@@ -251,6 +260,10 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
       COG = TRUE,
       rsmpl_overview = "nearest"
     )
+  filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="")
+  file <- filename
+  file.rename(filename, paste(job_path, "/", "training_image.tif", sep=""))
+  
   print("--> AFT raster cube created")
   print("--> training image written")
   print("--> raster data retrieval done")
