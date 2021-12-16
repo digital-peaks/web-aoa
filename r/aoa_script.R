@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
-workingDir <- "/app/r" #set working directory
+workingDir <- "/app/r" #set working directory 
 setwd(workingDir) #needed for local tests
-#setwd("~/GitHub/web-aoa/r") #needed for local tests
+#setwd("~/GitHub/web-aoa/r") #for local tests
 print("--> working directory set")
 
 library(CAST) #CAST-Package for performing AOA
@@ -16,11 +16,11 @@ library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 print("--> libraries imported")
 
-#args = commandArgs(trailingOnly=TRUE)
-#job_name <- args[1] #name of the job
-#print(paste("--> Get job id from args:", job_name))
+args = commandArgs(trailingOnly=TRUE)
+job_name <- args[1] #name of the job
+print(paste("--> Get job id from args:", job_name))
 
-#job_name <- "test"
+#job_name <- "test" #for local tests
 job_path <- paste("/app/r", job_name, sep="/") #path to the job folder
 job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
