@@ -23,7 +23,7 @@ const SAMPLES_MIME_TYPES = [
   "application/x-sqlite3",
 ];
 
-const MODEL_MIME_TYPES = [""];
+const MODEL_MIME_TYPES = ["application/octet-stream"];
 
 const JOBS_FOLDER = path.join(__dirname, "/../../jobs");
 

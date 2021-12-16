@@ -5,8 +5,10 @@ const { format } = require("date-fns");
  * @param {Object} job
  * @returns
  */
-const convertForR = (job) => {
-  const defaultValues = {
+const convertForR = (jobRaw) => {
+  const job = { ...jobRaw };
+
+  const defaultJob = {
     name: "Unnamed job",
     use_lookup: "false",
     resolution: 10,
@@ -34,25 +36,14 @@ const convertForR = (job) => {
     end_timestamp = format(new Date(job.end_timestamp), "yyyy-MM-dd");
   }
 
-  const {
-    name,
-    use_lookup,
-    resolution,
-    cloud_cover,
-    sampling_strategy,
-    use_pretrained_model,
-    model,
-  } = job;
+  // Remove undefined values
+  Object.keys(job).forEach((key) =>
+    job[key] === undefined ? delete job[key] : {}
+  );
 
   return {
-    ...defaultValues,
-    name,
-    use_lookup,
-    resolution,
-    cloud_cover,
-    sampling_strategy,
-    use_pretrained_model,
-    model,
+    ...defaultJob,
+    ...job,
     start_timestamp,
     end_timestamp,
   };
