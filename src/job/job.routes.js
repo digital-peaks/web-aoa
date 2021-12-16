@@ -7,6 +7,8 @@ const upload = multer();
 
 const router = express.Router();
 
+router.use("/", require("./file/job-file.routes"));
+
 // Add express request handlers:
 
 /**
