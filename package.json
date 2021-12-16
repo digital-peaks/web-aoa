@@ -1,10 +1,10 @@
 {
   "name": "digital-peaks-web-aoa-api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon --ignore r/ src/index.js",
+    "start": "nodemon --ignore r/ --ignore jobs/ src/index.js",
     "start:prod": "node src/index.js",
     "test:unit": "jest src",
     "lint": "eslint src"
@@ -17,6 +17,9 @@
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
     "mongoose": "^6.0.13",
+    "multer": "^1.4.4",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.2.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {

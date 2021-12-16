@@ -27,3 +27,7 @@ r/test_job/images/test_training_image_2020-01-01.tif.aux.xml
 *.tfw
 r/test/pred.tif.aux.xml
 r/test/test_training_image_2020-01-01.tif.aux.xml
+
+
+jobs/*
+!jobs/.gitkeep
