@@ -2,15 +2,21 @@ FROM rocker/r-base:4.1.2
 
 WORKDIR /app
 
-# See: https://github.com/nodesource/distributions/blob/master/README.md
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-
 RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
+    curl \
+    build-essential \ 
+    gcc \
+    g++ \
+    make \
     libssl-dev \
     libudunits2-dev \
     libgdal-dev
+
+# See: https://github.com/nodesource/distributions/blob/master/README.md
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+
+RUN apt-get install -y \
+    nodejs=16.*
 
 # install R packages
 RUN R -e "install.packages('caret')"
@@ -32,8 +38,6 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-
-# CMD R -e "source('/app/r/aoa_script.R')"
 
 ENTRYPOINT ["npm", "run"]
 CMD ["start:prod"]

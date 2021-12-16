@@ -1,6 +1,9 @@
 const express = require("express");
+const multer = require("multer");
 const asyncHandler = require("express-async-handler");
 const JobService = require("./job.service");
+
+const upload = multer();
 
 const router = express.Router();
 
@@ -18,46 +21,63 @@ const router = express.Router();
  *   post:
  *     summary: Create a job
  *     tags: [Jobs]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
- *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - use_lookup
- *               - resolution
- *               - cloud_cover
- *               - start_timestamp
- *               - end_timestamp
- *               - sampling_strategy
  *             properties:
- *              name:
- *                type: string
- *              use_lookup:
- *                type: boolean
- *              resolution:
- *                type: number
- *              cloud_cover:
- *                type: number
- *              start_timestamp:
- *                type: date-time
- *              end_timestamp:
- *                type: date-time
- *              sampling_strategy:
- *                type: string
- *              use_pretrained_model:
- *                type: boolean
- *             example:
- *               name: "Job name"
- *               use_lookup: false
- *               resolution: 10
- *               cloud_cover: 15
- *               start_timestamp: "2020-01-01T00:00:00.000Z"
- *               end_timestamp: "2020-06-01T00:00:00.000Z"
- *               sampling_strategy: "regular"
- *               use_pretrained_model: false
+ *               samples:
+ *                 type: string
+ *                 format: binary
+ *                 description: ".json, .geojson, .gpkg"
+ *               model:
+ *                 type: string
+ *                 format: binary
+ *                 description: ".rds"
+ *               job:
+ *                 type: object
+ *                 required:
+ *                   - name
+ *                   - use_lookup
+ *                   - resolution
+ *                   - cloud_cover
+ *                   - start_timestamp
+ *                   - end_timestamp
+ *                   - sampling_strategy
+ *                 properties:
+ *                  name:
+ *                    type: string
+ *                  area_of_interest:
+ *                    type: object
+ *                  use_lookup:
+ *                    type: boolean
+ *                  resolution:
+ *                    type: number
+ *                  cloud_cover:
+ *                    type: number
+ *                  start_timestamp:
+ *                    type: date-time
+ *                  end_timestamp:
+ *                    type: date-time
+ *                  sampling_strategy:
+ *                    type: string
+ *                  use_pretrained_model:
+ *                    type: boolean
+ *                 example:
+ *                   {
+ *                     "name": "Job name",
+ *                     "use_lookup": false,
+ *                     "resolution": 10,
+ *                     "cloud_cover": 15,
+ *                     "start_timestamp": "2020-01-01T00:00:00.000Z",
+ *                     "end_timestamp": "2020-06-01T00:00:00.000Z",
+ *                     "sampling_strategy": "regular",
+ *                     "use_pretrained_model": false,
+ *                     "area_of_interest": {"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[7.571640014648437,51.93653958505235],[7.608976364135742,51.93653958505235],[7.608976364135742,51.96521171889782],[7.571640014648437,51.96521171889782],[7.571640014648437,51.93653958505235]]]}}]}
+ *                   }
  *     responses:
  *       "201":
  *         description: Created
@@ -72,13 +92,17 @@ const router = express.Router();
  */
 router.post(
   "/jobs",
+  upload.fields([
+    { name: "samples", maxCount: 1 },
+    { name: "model", maxCount: 1 },
+  ]),
   // The asyncHandler helps us to use await inside `(req, res) => { ... }`
   // And it catches errors properly.
   // Recommend to use it for every request handler!
   asyncHandler(async (req, res) => {
     // Please keep this logic simple and just call the service function.
     // Validations or MongoDB requests should run inside the service.
-    const result = await JobService.createJob(req.body);
+    const result = await JobService.createJob(req.body.job, req.files);
     res.status(201).json(result);
   })
 );

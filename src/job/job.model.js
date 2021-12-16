@@ -9,6 +9,10 @@ const jobSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  area_of_interest: {
+    type: Object,
+    required: true,
+  },
   use_lookup: {
     type: Boolean,
     required: true,
@@ -28,6 +32,9 @@ const jobSchema = new mongoose.Schema({
   end_timestamp: {
     type: Date,
     required: true,
+  },
+  samples_class: {
+    type: String,
   },
   sampling_strategy: {
     type: String,
