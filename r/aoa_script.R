@@ -271,7 +271,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
 
 #############Training
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used no training stack must be created
-  training_stack_path <- paste(job_path, "/", training_image_name, t0, ".tif", sep="")
+  training_stack_path <- paste(job_path, "/", training_image_name, ".tif", sep="")
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
@@ -279,7 +279,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   training_stack 
 }
 
-classification_stack_path <- paste(job_path, "/", classification_image_name, t0, ".tif", sep="")
+classification_stack_path <- paste(job_path, "/", classification_image_name, ".tif", sep="")
 classification_stack <- stack(classification_stack_path) #load classification image 
 print("--> classification stac created")
 names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
