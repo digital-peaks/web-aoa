@@ -200,7 +200,7 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
   ]);
 
   // eslint-disable-next-line security/detect-non-literal-fs-filename
-  const outputStream = fs.createWriteStream(path.join(jobPath, "output.logs"), {
+  const outputStream = fs.createWriteStream(path.join(jobPath, "output.log"), {
     flags: "a", // append
   });
 

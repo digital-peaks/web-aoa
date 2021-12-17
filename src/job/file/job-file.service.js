@@ -5,7 +5,7 @@ const logger = require("../../utils/logger");
 
 const JOBS_FOLDER = path.join(__dirname, "/../../../jobs");
 
-const WHITELIST_EXTENSION = [".geojson", ".gpkg", ".tif", ".rds", ".logs"];
+const WHITELIST_EXTENSION = [".geojson", ".gpkg", ".tif", ".rds", ".log"];
 
 /**
  * Checks if the extension is in the whitelist.
