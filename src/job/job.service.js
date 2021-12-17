@@ -199,16 +199,34 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
     jobFolder,
   ]);
 
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  const outputStream = fs.createWriteStream(path.join(jobPath, "output.logs"), {
+    flags: "a", // append
+  });
+
   script.stdout.on("data", (data) => {
-    logger.info(`stdout: ${data}`);
+    logger.info(data);
+    outputStream.write(data);
   });
 
   script.stderr.on("data", (data) => {
-    logger.info(`stderr: ${data}`);
+    const log = `ERROR: ${data}`;
+    logger.warn(log);
+    outputStream.write(log);
   });
 
   script.on("close", (code) => {
-    logger.info(`child process exited with code ${code}`);
+    const logCode = `Code: ${code}`;
+    logger.info(logCode);
+    outputStream.write(`${logCode}\n`);
+
+    if (code === 0) {
+      logger.info("SUCCESS");
+      outputStream.end("SUCCESS");
+    } else {
+      logger.error("ERROR");
+      outputStream.end("ERROR");
+    }
   });
 
   return job;
