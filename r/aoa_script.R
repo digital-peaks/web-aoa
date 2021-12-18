@@ -352,9 +352,11 @@ spatial_points_dataframe <- SpatialPointsDataFrame(coords = xy, data = points_da
 
 spatial_points_dataframe_converted <- st_as_sf(spatial_points_dataframe) #convert spatial_points_dataframe
 st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set target system as crs
-st_write(spatial_points_dataframe_converted, geojson_path, driver = "GeoJSON") #export as GeoJSON
+spatial_points_dataframe_transformed <- st_transform(spatial_points_dataframe_converted, as.numeric("4326")) #transform AOI to Sentinel-Image EPSG
+st_write(spatial_points_dataframe_transformed, geojson_path, driver = "GeoJSON") #export as GeoJSON
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="")
 print(overall_time)
+
