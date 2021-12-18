@@ -31,3 +31,8 @@ r/test/test_training_image_2020-01-01.tif.aux.xml
 
 jobs/*
 !jobs/.gitkeep
+r/test/suggestion.geojson
+r/test/model.rds
+r/test/aoa_aoa.tif.aux.xml
+r/test/model.rds
+r/test/model.rds
