@@ -94,6 +94,10 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
     }
   }
 
+  // overwrite parameters:
+  body.finished = null;
+  body.status = "running";
+
   const job = await Job.create(body);
 
   const jobFolder = `${job.id}`;
@@ -215,18 +219,23 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
     outputStream.write(log);
   });
 
-  script.on("close", (code) => {
+  script.on("close", async (code) => {
     const logCode = `Code: ${code}`;
     logger.info(logCode);
     outputStream.write(`${logCode}\n`);
 
-    if (code === 0) {
-      logger.info("SUCCESS");
-      outputStream.end("SUCCESS");
-    } else {
-      logger.error("ERROR");
-      outputStream.end("ERROR");
+    // Handling status for MongoDB and log file.
+    const status = code === 0 ? "success" : "error";
+
+    try {
+      await Job.updateOne({ _id: job.id }, { finished: new Date(), status });
+    } catch (err) {
+      logger.error(err);
+      outputStream.write(`Unable to set job status: ${err}\n`);
     }
+
+    outputStream.end(status.toUpperCase());
+    logger.info(`Close job ${job.id} with status: ${status}`);
   });
 
   return job;

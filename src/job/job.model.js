@@ -48,6 +48,16 @@ const jobSchema = new mongoose.Schema({
     type: String,
   },
   created: { type: Date, default: Date.now },
+  /**
+   * Job is finished.
+   * Whether with status success or terminated by an error.
+   */
+  finished: { type: Date },
+  /**
+   * Indicates the status of the job.
+   * Should be: "running", "error", "success"
+   */
+  status: { type: String, default: "running" },
 });
 
 // Please use these plugins for a new model.
