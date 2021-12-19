@@ -22,6 +22,13 @@ const convertForR = (jobRaw) => {
     model: "model.rds",
     samples: "samples.geojson",
     aoi: "aoi.geojson",
+    procedure: {
+      selected: "rf",
+      random_forrest: {
+        n_tree: 800,
+        cross_validation_folds: 5,
+      },
+    },
   };
 
   // Format date-time to just a date:
