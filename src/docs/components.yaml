@@ -25,6 +25,12 @@ components:
           type: boolean
         created:
           type: date-time
+        finished:
+          type: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [running, error, success]
       example:
         id: "61b5dac80ba4add8236ed484"
         name: "Job name"
@@ -36,6 +42,8 @@ components:
         sampling_strategy: "regular"
         use_pretrained_model: false
         created: "2021-12-12T11:19:36.420Z"
+        finished: null
+        status: running
         area_of_interest:
           {
             "type": "Feature",
