@@ -103,13 +103,14 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
   const jobFolder = `${job.id}`;
   const jobPath = path.join(JOBS_FOLDER, jobFolder);
 
-  const parametersR = convertForR(job);
+  const parametersR = convertForR(job.toJSON());
 
   if (samplesFile) {
     // set file name with right extension for the R script:
-    const extension = (samplesFile.originalname || "").search(/\.gpkg$/i)
-      ? "gpkg"
-      : "geosjon";
+    const extension =
+      (samplesFile.originalname || "").search(/\.gpkg$/i) > -1
+        ? "gpkg"
+        : "geosjon";
     parametersR.samples = `samples.${extension}`;
   }
 

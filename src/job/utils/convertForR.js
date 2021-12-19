@@ -10,7 +10,6 @@ const convertForR = (jobRaw) => {
 
   const defaultJob = {
     name: "Unnamed job",
-    use_lookup: "false",
     resolution: 10,
     cloud_cover: 15,
     start_timestamp: "2020-01-01",
@@ -18,7 +17,6 @@ const convertForR = (jobRaw) => {
     samples_class: "class",
     sampling_strategy: "regular",
     obj_id: "PID",
-    use_pretrained_model: "false",
 
     // Files:
     model: "model.rds",
@@ -36,10 +34,19 @@ const convertForR = (jobRaw) => {
     end_timestamp = format(new Date(job.end_timestamp), "yyyy-MM-dd");
   }
 
+  // Convert Boolean fields to string.
+  // Because a string check is easier in R.
+  job.use_lookup = job.use_lookup ? "true" : "false";
+  job.use_pretrained_model = job.use_pretrained_model ? "true" : "false";
+
   // Remove undefined values
   Object.keys(job).forEach((key) =>
     job[key] === undefined ? delete job[key] : {}
   );
+
+  if (job.area_of_interest) {
+    delete job.area_of_interest;
+  }
 
   return {
     ...defaultJob,
