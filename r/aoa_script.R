@@ -336,7 +336,7 @@ print("--> prediction image written")
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
-mask <- mask(aoa_raster, aoa_raster, maskvalue=0) #create mask from aoa where model is not applicable
+mask <- mask(aoa_raster, aoa_raster, maskvalue=1) #create mask from aoa where model is not applicable
 print("--> AOA mask created")
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) #create sample points on mask
 print("--> suggested locations for extra training polygons created")
