@@ -1,9 +1,9 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
-#setwd("~/GitHub/web-aoa/r") #for local tests
 
 print("--> working directory set")
 
@@ -18,13 +18,12 @@ library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 print("--> libraries imported")
 
-args = commandArgs(trailingOnly=TRUE)
-job_name <- args[1] #name of the job
+#args = commandArgs(trailingOnly=TRUE)
+#job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
-#job_name <- "test" #for local tests
+job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
-#job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
 
 print(paste("--> Job path: ", job_path, sep=""))
 
@@ -70,7 +69,8 @@ print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
-  #!!!!!hier kommt die Lookup-Table hin!!!!
+  sample_area <- st_area(st_as_sfc(samplePolygon_bbox))
+  aoi_area <- st_area(aoi)
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
@@ -336,7 +336,7 @@ print("--> prediction image written")
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
-mask <- mask(aoa_raster, aoa_raster, maskvalue=0) #create mask from aoa where model is not applicable
+mask <- mask(aoa_raster, aoa_raster, maskvalue=1) #create mask from aoa where model is not applicable
 print("--> AOA mask created")
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) #create sample points on mask
 print("--> suggested locations for extra training polygons created")
