@@ -71,7 +71,7 @@ print("--> AOI and AFT set")
 if(parameters$use_lookup == "true") {
   aoi_area <- st_area(aoi)
   #Formula: resolution = sqrt(area/10000)
-  optimal_resolution_aoi <- sqrt(aoi_area/10000)
+  optimal_resolution_aoi <- sqrt(aoi_area/10000) #Function for calculating the optimal resolution for a 10000 pixel image
   
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
@@ -137,11 +137,11 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              right = aoi_bbox_tranformed[3],  
                                                              top = aoi_bbox_tranformed[4], 
                                                              bottom = aoi_bbox_tranformed[2]),
-                          dx = resolution_aoi, 
-                          dy = resolution_aoi, 
-                          dt = "P1D", #intervall in which images are taken from each time slice
-                          aggregation = "median", 
-                          resampling = "average")
+                                                             dx = resolution_aoi, 
+                                                             dy = resolution_aoi, 
+                                                             dt = "P1D", #intervall in which images are taken from each time slice
+                                                             aggregation = "median", 
+                                                             resampling = "average")
 print("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
@@ -221,11 +221,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                                                                 right = samplePolygons_bbox_tranformed[3],  
                                                                 top = samplePolygons_bbox_tranformed[4], 
                                                                 bottom = samplePolygons_bbox_tranformed[2]),
-                             dx = resolution_training, 
-                             dy = resolution_training, 
-                             dt = "P1D", 
-                             aggregation = "median", 
-                             resampling = "average")
+                                                                dx = resolution_training, 
+                                                                dy = resolution_training, 
+                                                                dt = "P1D", 
+                                                                aggregation = "median", 
+                                                                resampling = "average")
   print("--> AFT cube view created")
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
