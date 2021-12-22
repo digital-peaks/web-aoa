@@ -87,6 +87,14 @@ if(parameters$use_lookup == "true") {
     resolution_aoi <- 100
     resolution_training <- 100
   }
+  if(optimal_resolution_aoi <= 200 && optimal_resolution_aoi > 100) {
+    resolution_aoi <- 200
+    resolution_training <- 200
+  }
+  if(optimal_resolution_aoi <= 400 && optimal_resolution_aoi > 200) {
+    resolution_aoi <- 400
+    resolution_training <- 400
+  }
 } else {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
