@@ -69,11 +69,10 @@ print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
-  sample_area <- st_area(st_as_sfc(samplePolygon_bbox))
   aoi_area <- st_area(aoi)
-
   #Formula: resolution = sqrt(area/10000)
-  optimal_resolution_aoi <- sqrt(aoi_area)/10000
+  optimal_resolution_aoi <- sqrt(aoi_area/10000)
+  
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
 } else {
