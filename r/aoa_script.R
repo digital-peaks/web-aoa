@@ -70,7 +70,6 @@ print("--> AOI and AFT set")
 #select resolution
 if(parameters$use_lookup == "true") {
   aoi_area <- st_area(aoi)
-  #Formula: resolution = sqrt(area/10000)
   optimal_resolution_aoi <- sqrt(aoi_area/10000) #Function for calculating the optimal resolution for a 10000 pixel image
   
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
