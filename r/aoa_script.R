@@ -71,8 +71,8 @@ print("--> AOI and AFT set")
 if(parameters$use_lookup == "true") {
   aoi_area <- st_area(aoi)
   if(parameters$use_pretrained_model == "false") {
-    sample_area <- sum(st_area(sample_Polygons))
-    optimal_resolution <- sqrt(((aoi_area+sample_area)/2)/10000)
+    sample_area <- sum(st_area(samplePolygons))
+    optimal_resolution <- as.numeric(sqrt(((aoi_area+sample_area)/2)/10000))
   } else {
     optimal_resolution <- sqrt(aoi_area/10000) #Function for calculating the optimal resolution for a 10000 pixel image
   }
@@ -81,23 +81,23 @@ if(parameters$use_lookup == "true") {
     resolution_aoi <- 10
     resolution_training <- 10
   }
-  if(optimal_resolution <= 20 && optimal_resolution_aoi > 10) {
+  if(optimal_resolution <= 20 && optimal_resolution > 10) {
     resolution_aoi <- 20
     resolution_training <- 20
   }
-  if(optimal_resolution <= 50 && optimal_resolution_aoi > 20) {
+  if(optimal_resolution <= 50 && optimal_resolution > 20) {
     resolution_aoi <- 50
     resolution_training <- 50
   }
-  if(optimal_resolution <= 100 && optimal_resolution_aoi > 50) {
+  if(optimal_resolution <= 100 && optimal_resolution > 50) {
     resolution_aoi <- 100
     resolution_training <- 100
   }
-  if(optimal_resolution <= 200 && optimal_resolution_aoi > 100) {
+  if(optimal_resolution <= 200 && optimal_resolution > 100) {
     resolution_aoi <- 200
     resolution_training <- 200
   }
-  if(optimal_resolution <= 400 && optimal_resolution_aoi > 200) {
+  if(optimal_resolution <= 400 && optimal_resolution > 200) {
     resolution_aoi <- 400
     resolution_training <- 400
   }
@@ -106,7 +106,8 @@ if(parameters$use_lookup == "true") {
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
   print("--> custom resolution will be used")
 }
-print("--> output resolution set")
+print("--> output resolution set to ")
+print(resolution_aoi)
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 print("--> cloudcover set")
