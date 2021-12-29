@@ -13,9 +13,10 @@
   "use_pretrained_model": "false",
   "model": "model.rds",
   "procedure":  {
-	"selected": "rf",
-	"random_forrest": {
-		"n_tree": 800,
+	"selected": "svmradial",
+	"support_vector_machine": {
+		"sigma": 0.004385965,
+		"c": 1,
 		"cross_validation_folds": 5
 	}
   }
