@@ -110,7 +110,7 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
     const extension =
       (samplesFile.originalname || "").search(/\.gpkg$/i) > -1
         ? "gpkg"
-        : "geosjon";
+        : "geojson";
     parametersR.samples = `samples.${extension}`;
   }
 
