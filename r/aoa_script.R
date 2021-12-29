@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-#workingDir <- "/app/jobs" #set working directory 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 
 print("--> working directory set")
@@ -19,17 +19,17 @@ library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-te
 library(kernlab) #kernlab for training kernel based support vector machines
 print("--> libraries imported")
 
-#args = commandArgs(trailingOnly=TRUE)
-#job_name <- args[1] #name of the job
+args = commandArgs(trailingOnly=TRUE)
+job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
-job_name <- "test" #for local tests
+#job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
-parameters <- fromJSON(file = paste(job_path, "/", "job_param_svm.json", sep="")) #read in job paramters
+parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job paramters
 print("--> parameters read")
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
