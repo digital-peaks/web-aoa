@@ -1,6 +1,7 @@
 const express = require("express");
 const asyncHandler = require("express-async-handler");
 const UserService = require("./user.service");
+const auth = require("../auth/auth.middleware");
 
 const router = express.Router();
 
@@ -9,6 +10,54 @@ const router = express.Router();
  * tags:
  *   name: Users
  */
+
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Login
+ *     tags: [Users]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *              email:
+ *                type: string
+ *                format: email
+ *              password:
+ *                type: string
+ *             example:
+ *               {
+ *                 "email": "jane.doe@example.com",
+ *                 "password": "cycling-sorority-YUMMY-toaster-42",
+ *               }
+ *     responses:
+ *       "201":
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *                type: object
+ *                properties:
+ *                  token:
+ *                    type: string
+ *       "400":
+ *         $ref: '#/components/responses/BadRequestException'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerErrorException'
+ */
+router.post(
+  "/users/login",
+  asyncHandler(async (req, res) => {
+    const result = await UserService.login(req.body);
+    res.status(201).json(result);
+  })
+);
 
 /**
  * @swagger
@@ -30,7 +79,7 @@ const router = express.Router();
  *                type: string
  *              email:
  *                type: string
- *                format: date-time
+ *                format: email
  *              password:
  *                type: string
  *             example:
@@ -56,6 +105,34 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await UserService.createUser(req.body);
     res.status(201).json(result);
+  })
+);
+
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: Get current user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerErrorException'
+ */
+router.get(
+  "/users/me",
+  auth(),
+  asyncHandler(async (req, res) => {
+    res.json(req.user);
   })
 );
 

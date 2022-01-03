@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const passport = require("passport");
+const { jwtStrategy } = require("./auth/passport");
 const requestErrorHandler = require("./utils/exceptions/requestErrorHandler");
 
 const routes = require("./routes");
@@ -11,6 +13,10 @@ const app = express();
 app.use(bodyParser.json({ limit: "5mb", type: "application/json" }));
 
 app.use(cors());
+
+// jwt authentication
+app.use(passport.initialize());
+passport.use("jwt", jwtStrategy);
 
 // Register routes
 app.use(routes);

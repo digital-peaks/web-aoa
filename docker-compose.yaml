@@ -20,6 +20,7 @@ services:
       - NODE_ENV=dev
       - EXPRESS_PORT=9000
       - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
+      - JWT_SECRET=WebAOASecret
     ports:
       - "9000:9000"
     volumes:
