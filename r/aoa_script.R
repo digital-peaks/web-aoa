@@ -23,6 +23,10 @@ args = commandArgs(trailingOnly=TRUE)
 job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
+
+#Result JSON
+result <- vector(mode="list", length=3)
+
 #job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 
@@ -205,7 +209,7 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     COG = TRUE,
     rsmpl_overview = "nearest"
   )
-filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="")
+ filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="")
 file <- filename
 file.rename(filename, paste(job_path, "/", "classification_image.tif", sep=""))
 
@@ -370,13 +374,18 @@ aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
 di_path <- paste(job_path, "/", "aoa_di", sep="")
 prediction_path <- paste(job_path, "/", "pred", sep="")
 geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="")
+result_path <- paste(job_path, "/", "result.json", sep="")
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
 print("--> AOA image written")
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
 print("--> DI image written")
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 print("--> prediction image written")
-
+result[[1]] <- model$levels
+result[[2]] <- model$results$Accuracy
+result[[3]] <- model$results$Kappa
+exportJson <- toJSON(result)
+write(exportJson, result_path)
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
