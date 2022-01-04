@@ -21,6 +21,7 @@ services:
       - EXPRESS_PORT=9000
       - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
       - JWT_SECRET=WebAOASecret
+      - API_KEY=43wd3oa3dh73y9ok8fs7wf1pc30sq1
     ports:
       - "9000:9000"
     volumes:

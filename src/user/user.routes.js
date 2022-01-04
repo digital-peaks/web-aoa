@@ -2,6 +2,7 @@ const express = require("express");
 const asyncHandler = require("express-async-handler");
 const UserService = require("./user.service");
 const auth = require("../auth/auth.middleware");
+const apiKey = require("../auth/api-key.middleware");
 
 const router = express.Router();
 
@@ -61,10 +62,40 @@ router.post(
 
 /**
  * @swagger
+ * /users/me:
+ *   get:
+ *     summary: Get current user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerErrorException'
+ */
+router.get(
+  "/users/me",
+  auth(),
+  asyncHandler(async (req, res) => {
+    res.json(req.user);
+  })
+);
+
+/**
+ * @swagger
  * /users:
  *   post:
  *     summary: Create a user
  *     tags: [Users]
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       content:
  *         application/json:
@@ -97,42 +128,17 @@ router.post(
  *                $ref: '#/components/schemas/User'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
- *       "500":
- *         $ref: '#/components/responses/InternalServerErrorException'
- */
-router.post(
-  "/users",
-  asyncHandler(async (req, res) => {
-    const result = await UserService.createUser(req.body);
-    res.status(201).json(result);
-  })
-);
-
-/**
- * @swagger
- * /users/me:
- *   get:
- *     summary: Get current user.
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       "200":
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
  *       "401":
  *         $ref: '#/components/responses/UnauthorizedException'
  *       "500":
  *         $ref: '#/components/responses/InternalServerErrorException'
  */
-router.get(
-  "/users/me",
-  auth(),
+router.post(
+  "/users",
+  apiKey(),
   asyncHandler(async (req, res) => {
-    res.json(req.user);
+    const result = await UserService.createUser(req.body);
+    res.status(201).json(result);
   })
 );
 
@@ -142,6 +148,8 @@ router.get(
  *   get:
  *     summary: Get all users
  *     tags: [Users]
+ *     security:
+ *       - ApiKeyAuth: []
  *     responses:
  *       "200":
  *         description: OK
@@ -153,11 +161,14 @@ router.get(
  *                  $ref: '#/components/schemas/User'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "500":
  *         $ref: '#/components/responses/InternalServerErrorException'
  */
 router.get(
   "/users",
+  apiKey(),
   asyncHandler(async (req, res) => {
     const result = await UserService.getUsers();
     res.json(result);
@@ -170,6 +181,8 @@ router.get(
  *   delete:
  *     summary: Delete user by id.
  *     tags: [Users]
+ *     security:
+ *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -180,6 +193,8 @@ router.get(
  *     responses:
  *       "200":
  *         description: No content
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "404":
  *         $ref: '#/components/responses/NotFoundException'
  *       "500":
@@ -187,6 +202,7 @@ router.get(
  */
 router.delete(
   "/users/:id",
+  apiKey(),
   asyncHandler(async (req, res) => {
     const result = await UserService.deleteUser(req.params.id);
     res.json(result);
