@@ -1,4 +1,13 @@
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
   schemas:
     Job:
       type: object
@@ -79,6 +88,25 @@ components:
         name: "samples.geojson"
         size: 698
         modified: "2021-12-16T15:42:42.356Z"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        created:
+          type: string
+          format: date-time
+      example:
+        id: "61b5dac80ba4add8236ed488"
+        name: "Jane Doe"
+        email: "jane.doe@example.com"
+        created: "2022-01-02T18:00:42.356Z"
 
     BaseException:
       type: object
