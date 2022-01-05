@@ -369,7 +369,7 @@ print("--> AOA calculation done done")
 aoa
 print("--> geostatistical processing done")
 
-#############Raster Export
+#############Export
 aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
 di_path <- paste(job_path, "/", "aoa_di", sep="")
 prediction_path <- paste(job_path, "/", "pred", sep="")
@@ -381,11 +381,11 @@ writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export di
 print("--> DI image written")
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 print("--> prediction image written")
-result[[1]] <- model$levels
-result[[2]] <- model$results$Accuracy
-result[[3]] <- model$results$Kappa
-exportJson <- toJSON(result)
-write(exportJson, result_path)
+result[[1]] <- model$levels #store classes
+result[[2]] <- model$results$Accuracy #store accuracy
+result[[3]] <- model$results$Kappa #store kappa
+exportJson <- toJSON(result) #covert to JSON
+write(exportJson, result_path) #export
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
