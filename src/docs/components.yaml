@@ -102,16 +102,11 @@ components:
         created:
           type: string
           format: date-time
-        deleted:
-          type: string
-          format: date-time
-          nullable: true
       example:
         id: "61b5dac80ba4add8236ed488"
         name: "Jane Doe"
         email: "jane.doe@example.com"
         created: "2022-01-02T18:00:42.356Z"
-        deleted: null
 
     BaseException:
       type: object

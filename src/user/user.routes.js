@@ -177,6 +177,61 @@ router.get(
 
 /**
  * @swagger
+ * /users:
+ *   put:
+ *     summary: Update user.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - name
+ *               - email
+ *             properties:
+ *              id:
+ *                type: string
+ *              name:
+ *                type: string
+ *              email:
+ *                type: string
+ *                format: email
+ *              password:
+ *                type: string
+ *             example:
+ *               {
+ *                 "id": "61b5dac80ba4add8236ed488",
+ *                 "name": "Jane Doe",
+ *                 "email": "jane.doe@example.com",
+ *                 "password": "cycling-sorority-YUMMY-toaster-42",
+ *               }
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerErrorException'
+ */
+router.put(
+  "/users",
+  asyncHandler(async (req, res) => {
+    const result = await UserService.updateUser(req.body);
+    res.json(result);
+  })
+);
+
+/**
+ * @swagger
  * /users/{id}:
  *   delete:
  *     summary: Delete user by id.

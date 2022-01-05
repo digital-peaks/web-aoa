@@ -22,11 +22,10 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     trim: true,
+    private: true, // used by the toJSON plugin
   },
   created: { type: Date, default: Date.now },
-  deleted: { type: Date, default: null },
 });
 
 // Please use these plugins for a new model.
