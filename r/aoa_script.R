@@ -16,6 +16,7 @@ library(rstac) #rstac for accessing STAC-Catalogue
 library(rjson) #rjson for reading json input job file
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
+library(kernlab) #kernlab for training kernel based support vector machines
 print("--> libraries imported")
 
 args = commandArgs(trailingOnly=TRUE)
@@ -325,13 +326,26 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   print("--> predictors set")
   response <- response #set response value
   print("--> response set")
-  model <- train(training_data[,predictors], training_data$class, #train model
-                  method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
-                  importance=TRUE,
-                  ntree=parameters$procedure$random_forrest$n_tree, #max number of trees
-                  trControl=trainControl(method="cv", number=parameters$procedure$random_forrest$cross_validation_folds)) #perform cross validation to assess model
-  print("--> model trained")
-  model
+  if(parameters$procedure$selected == "rf") {
+    print("--> random forrest will be trained")
+    model <- train(training_data[,predictors], training_data$class, #train model
+                    method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
+                    importance=TRUE,
+                    ntree=parameters$procedure$random_forrest$n_tree, #max number of trees
+                    trControl=trainControl(method="cv", number=parameters$procedure$random_forrest$cross_validation_folds)) #perform cross validation to assess model
+    print("--> model trained")
+    model
+  }
+  if(parameters$procedure$selected == "svmradial") {
+    print("--> support vector machine will be trained")
+    
+    model <- train(training_data[,predictors], training_data$class, #train model
+                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$procedure$support_vector_machine$c,.sigma=parameters$procedure$support_vector_machine$sigma), #with support vector machine
+                   importance=TRUE,
+                   trControl=trainControl(method="cv", number=parameters$procedure$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
+    print("--> model trained")
+    model
+  }
   model_path <- paste(job_path, "/", "model.rds", sep="")
   saveRDS(model, model_path)
   print("--> model exported")
