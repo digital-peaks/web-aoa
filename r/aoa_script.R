@@ -1,9 +1,9 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
 workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
-#setwd("~/GitHub/web-aoa/r") #for local tests
 
 print("--> working directory set")
 
@@ -24,7 +24,6 @@ print(paste("--> Get job id from args:", job_name))
 
 #job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
-#job_path <- paste("~/GitHub/web-aoa/r", job_name, sep="/") #path to the job folder
 
 print(paste("--> Job path: ", job_path, sep=""))
 
@@ -70,15 +69,45 @@ print("--> AOI and AFT set")
 
 #select resolution
 if(parameters$use_lookup == "true") {
-  #!!!!!hier kommt die Lookup-Table hin!!!!
-  resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
-  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter) 
+  aoi_area <- st_area(aoi)
+  if(parameters$use_pretrained_model == "false") {
+    sample_area <- sum(st_area(samplePolygons))
+    optimal_resolution <- as.numeric(sqrt(((aoi_area+sample_area)/2)/10000))
+  } else {
+    optimal_resolution <- sqrt(aoi_area/10000) #Function for calculating the optimal resolution for a 10000 pixel image
+  }
+  
+  if(optimal_resolution <= 10) {
+    resolution_aoi <- 10
+    resolution_training <- 10
+  }
+  if(optimal_resolution <= 20 && optimal_resolution > 10) {
+    resolution_aoi <- 20
+    resolution_training <- 20
+  }
+  if(optimal_resolution <= 50 && optimal_resolution > 20) {
+    resolution_aoi <- 50
+    resolution_training <- 50
+  }
+  if(optimal_resolution <= 100 && optimal_resolution > 50) {
+    resolution_aoi <- 100
+    resolution_training <- 100
+  }
+  if(optimal_resolution <= 200 && optimal_resolution > 100) {
+    resolution_aoi <- 200
+    resolution_training <- 200
+  }
+  if(optimal_resolution <= 400 && optimal_resolution > 200) {
+    resolution_aoi <- 400
+    resolution_training <- 400
+  }
 } else {
   resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
   resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
   print("--> custom resolution will be used")
 }
-print("--> output resolution set")
+print("--> output resolution set to ")
+print(resolution_aoi)
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 print("--> cloudcover set")
@@ -135,11 +164,11 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              right = aoi_bbox_tranformed[3],  
                                                              top = aoi_bbox_tranformed[4], 
                                                              bottom = aoi_bbox_tranformed[2]),
-                          dx = resolution_aoi, 
-                          dy = resolution_aoi, 
-                          dt = "P1D", #intervall in which images are taken from each time slice
-                          aggregation = "median", 
-                          resampling = "average")
+                                                             dx = resolution_aoi, 
+                                                             dy = resolution_aoi, 
+                                                             dt = "P1D", #intervall in which images are taken from each time slice
+                                                             aggregation = "median", 
+                                                             resampling = "average")
 print("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
@@ -219,11 +248,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                                                                 right = samplePolygons_bbox_tranformed[3],  
                                                                 top = samplePolygons_bbox_tranformed[4], 
                                                                 bottom = samplePolygons_bbox_tranformed[2]),
-                             dx = resolution_training, 
-                             dy = resolution_training, 
-                             dt = "P1D", 
-                             aggregation = "median", 
-                             resampling = "average")
+                                                                dx = resolution_training, 
+                                                                dy = resolution_training, 
+                                                                dt = "P1D", 
+                                                                aggregation = "median", 
+                                                                resampling = "average")
   print("--> AFT cube view created")
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
