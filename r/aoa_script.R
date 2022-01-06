@@ -19,13 +19,13 @@ library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-te
 library(kernlab) #kernlab for training kernel based support vector machines
 print("--> libraries imported")
 
-args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly=TRUE) #read passed arguments 
 job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
 
 #Result JSON
-result <- vector(mode="list", length=3)
+result <- vector(mode="list", length=3) #initialize result JSON
 
 #job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
@@ -42,17 +42,17 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
   print("--> new model will be trained")
 } else {
-  tryCatch({
-    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
-    model <- readRDS(model_path) 
+  tryCatch({ 
+    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the model
+    model <- readRDS(model_path) #ingest .rds file
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
       stop()
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
-      if(model_bands[i]%in%available_bands == FALSE) {
-        stop()
+      if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
+        stop() #stop processing
       }
     }
     print("--> pretrained model valid")
@@ -73,15 +73,16 @@ aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 print("--> AOI and AFT set")
 
 #select resolution
-if(parameters$use_lookup == "true") {
-  aoi_area <- st_area(aoi)
-  if(parameters$use_pretrained_model == "false") {
-    sample_area <- sum(st_area(samplePolygons))
-    optimal_resolution <- as.numeric(sqrt(((aoi_area+sample_area)/2)/10000))
-  } else {
-    optimal_resolution <- sqrt(aoi_area/10000) #Function for calculating the optimal resolution for a 10000 pixel image
+if(parameters$use_lookup == "true") { #if look-table should be used to find optimal resolution
+  aoi_area <- st_area(aoi) #calculate area of the aoi
+  if(parameters$use_pretrained_model == "false") { #if samples are ingestable
+    sample_area <- sum(st_area(samplePolygons)) #calculate area of the samples
+    optimal_resolution <- as.numeric(sqrt(((aoi_area+sample_area)/2)/10000)) #calculate optimal resolution for image with 10000 pixels
+  } else { 
+    optimal_resolution <- sqrt(aoi_area/10000) #function for calculating the optimal resolution for a 10000 pixel image
   }
   
+  #resolution lookup table
   if(optimal_resolution <= 10) {
     resolution_aoi <- 10
     resolution_training <- 10
@@ -135,15 +136,15 @@ print("--> basic processing setup done")
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>% #retrieve sentinel bands for area of interest
-  stac_search(collections = "sentinel-s2-l2a-cogs",
+  stac_search(collections = "sentinel-s2-l2a-cogs", #search for cloud optimized images
               bbox = c(aoi_bbox[1],aoi_bbox[2],aoi_bbox[3],aoi_bbox[4]), #Anfrage mit AOI-BBox
-              datetime = timeframe,
-              limit = 100) %>%
-  post_request() 
+              datetime = timeframe, #set timeframe
+              limit = 100) %>% #limit results to 100 datasets
+  post_request() #post the request
 print("--> stac items for AOI retrieved")
 items_aoi
 
-tryCatch({
+tryCatch({ #try to build a collection from items
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 }, warning = function(w) {
@@ -151,7 +152,7 @@ tryCatch({
 }, error = function(e) {
   print("Error!")
 }, finally = {
-  collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
+  collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, #try to build a collection from items
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
   print("--> image collection for AOI created")
 })
@@ -164,6 +165,7 @@ print("--> AOI tranformed to target crs")
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
 print("--> AOI bbox tranformed to target crs")
 
+#build a cube view object
 cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              left = aoi_bbox_tranformed[1], 
                                                              right = aoi_bbox_tranformed[3],  
@@ -181,13 +183,14 @@ print("--> cloud mask created")
 
 gdalcubes_options(threads = 8) #set Threads for raster cube
 print("--> gdalcubes threads set to 8")
-classification_image_name <- paste('classification_image', sep ="") 
+classification_image_name <- paste('classification_image', sep ="")  #set classifiication image name
+#build a raster_cube object
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
   select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
   apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
   apply_pixel("(B11+B04)-(B08+B02)/(B11+B04)+(B08+B02)", "BSI", keep_bands = TRUE) %>% #Bare Soil Index
   apply_pixel("(B04 + 0.3)/(B03+B11)", "BAEI", keep_bands = TRUE) %>% #Built-up Area Extraction Index
-  reduce_time(c("median(B01)", 
+  reduce_time(c("median(B01)", #reduce timeseries
                 "median(B02)", 
                 "median(B03)", 
                 "median(B04)", 
@@ -202,16 +205,16 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
                 "median(NDVI)", 
                 "median(BSI)", 
                 "median(BAEI)")) %>%  
-  write_tif(
-    dir = job_path,
+  write_tif( #write result as .tif
+    dir = job_path, #to the job folder
     prefix = basename(classification_image_name),
     overviews = FALSE,
-    COG = TRUE,
+    COG = TRUE, #write a cloud optimzed image
     rsmpl_overview = "nearest"
   )
- filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="")
-file <- filename
-file.rename(filename, paste(job_path, "/", "classification_image.tif", sep=""))
+ filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") 
+file <- filename #find written file
+file.rename(filename, paste(job_path, "/", "classification_image.tif", sep="")) #rename written file
 
 print("--> AOI raster cube created")
 print("--> classification image written")
@@ -219,11 +222,11 @@ print("--> classification image written")
 #############Get Image-Data for sample Polygons
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used to trainig data must be retrieved
   items_poly <- stac %>% #retrieve sentinel bands for area for training
-    stac_search(collections = "sentinel-s2-l2a-cogs",
+    stac_search(collections = "sentinel-s2-l2a-cogs", #search for cloud optimized images
                 bbox = c(samplePolygon_bbox[1], samplePolygon_bbox[2], samplePolygon_bbox[3], samplePolygon_bbox[4]),
-                datetime = timeframe,
-                limit = 100) %>%
-    post_request() 
+                datetime = timeframe, #set timeframe
+                limit = 100) %>% #set max results to 100 items
+    post_request() #post request
   print("--> stac items for AFT retrieved")
   items_poly
   
@@ -305,7 +308,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
 
 #############Training
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used no training stack must be created
-  training_stack_path <- paste(job_path, "/", training_image_name, ".tif", sep="")
+  training_stack_path <- paste(job_path, "/", training_image_name, ".tif", sep="") #set path to training datasets
   training_stack <- stack(training_stack_path) #load training image as stack
   print("--> training stac created")
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
@@ -313,7 +316,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   training_stack 
 }
 
-classification_stack_path <- paste(job_path, "/", classification_image_name, ".tif", sep="")
+classification_stack_path <- paste(job_path, "/", classification_image_name, ".tif", sep="") #set path to classification datasets
 classification_stack <- stack(classification_stack_path) #load classification image 
 print("--> classification stac created")
 names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
@@ -330,32 +333,31 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   print("--> predictors set")
   response <- response #set response value
   print("--> response set")
-  if(parameters$procedure$selected == "rf") {
+  if(parameters$procedure$selected == "rf") { #if random forrest is selected
     print("--> random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
                     method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
-                    importance=TRUE,
+                    importance=TRUE, #store importance of predictors
                     ntree=parameters$procedure$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$procedure$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("--> model trained")
     model
   }
-  if(parameters$procedure$selected == "svmradial") {
+  if(parameters$procedure$selected == "svmradial") { #if support vector machine is selected
     print("--> support vector machine will be trained")
-    
     model <- train(training_data[,predictors], training_data$class, #train model
                    method="svmRadial", tuneGrid=expand.grid(.C = parameters$procedure$support_vector_machine$c,.sigma=parameters$procedure$support_vector_machine$sigma), #with support vector machine
-                   importance=TRUE,
+                   importance=TRUE, #store importance of predictors
                    trControl=trainControl(method="cv", number=parameters$procedure$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
     print("--> model trained")
     model
   }
-  model_path <- paste(job_path, "/", "model.rds", sep="")
-  saveRDS(model, model_path)
+  model_path <- paste(job_path, "/", "model.rds", sep="") #set model path
+  saveRDS(model, model_path) #store model as .rds
   print("--> model exported")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
-    model <- readRDS(model_path)
+    model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
 }
 
@@ -369,11 +371,11 @@ aoa
 print("--> geostatistical processing done")
 
 #############Export
-aoa_path <- paste(job_path, "/", "aoa_aoa", sep="")
-di_path <- paste(job_path, "/", "aoa_di", sep="")
-prediction_path <- paste(job_path, "/", "pred", sep="")
-geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="")
-result_path <- paste(job_path, "/", "result.json", sep="")
+aoa_path <- paste(job_path, "/", "aoa_aoa", sep="") #set area of applicability path
+di_path <- paste(job_path, "/", "aoa_di", sep="") #set dissimilarity index path
+prediction_path <- paste(job_path, "/", "pred", sep="") #set prediction path
+geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="") #set geojon path for suggested sampling locations
+result_path <- paste(job_path, "/", "result.json", sep="") #set result path for result JSON
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
 print("--> AOA image written")
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
@@ -384,7 +386,7 @@ result[[1]] <- model$levels #store classes
 result[[2]] <- model$results$Accuracy #store accuracy
 result[[3]] <- model$results$Kappa #store kappa
 exportJson <- toJSON(result) #covert to JSON
-write(exportJson, result_path) #export
+write(exportJson, result_path) #export result JSON
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
@@ -409,6 +411,6 @@ st_write(spatial_points_dataframe_transformed, geojson_path, driver = "GeoJSON")
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
 end_time <- Sys.time() #set end time 
-overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="")
+overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="") #culculate overall processing time
 print(overall_time)
 
