@@ -12,6 +12,7 @@ services:
       - mongodb
   api:
     image: nschnierer/digital-peaks-web-aoa-api:latest
+    container_name: "api"
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -49,6 +50,24 @@ services:
       - ./mongo/volume:/data/db
     networks:
       - default
+
+  migration:
+    profiles:
+      - migration
+    image: node:16-alpine
+    container_name: "migration"
+    restart: always
+    command: ["/migration/create-user.js"]
+    environment:
+      API_HOST: api
+      API_PORT: 9000
+      API_KEY: 43wd3oa3dh73y9ok8fs7wf1pc30sq1
+    volumes:
+      - ./migration/create-user.js:/migration/create-user.js:ro
+    networks:
+      - default
+    depends_on:
+      - api
 
 networks:
   default:
