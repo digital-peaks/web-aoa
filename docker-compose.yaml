@@ -3,9 +3,9 @@ services:
   frontend:
     image: nschnierer/digital-peaks-web-aoa-frontend:latest
     environment:
-      - NODE_ENV=dev
+      - NODE_ENV
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT}:80"
     networks:
       - default
     depends_on:
@@ -18,13 +18,12 @@ services:
       dockerfile: ./Dockerfile
     command: ["start"]
     environment:
-      - NODE_ENV=dev
-      - EXPRESS_PORT=9000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
-      - JWT_SECRET=WebAOASecret
-      - API_KEY=43wd3oa3dh73y9ok8fs7wf1pc30sq1
+      - NODE_ENV
+      - MONGODB_CONNECTION_STRING
+      - JWT_SECRET
+      - API_KEY
     ports:
-      - "9000:9000"
+      - "${API_PORT}:9000"
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
@@ -42,9 +41,9 @@ services:
     ports:
       - "27017-27019:27017-27019"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: toor
-      MONGO_INITDB_DATABASE: webaoa
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE
     volumes:
       - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - ./mongo/volume:/data/db
@@ -59,9 +58,9 @@ services:
     restart: always
     command: ["/migration/create-user.js"]
     environment:
-      API_HOST: api
-      API_PORT: 9000
-      API_KEY: 43wd3oa3dh73y9ok8fs7wf1pc30sq1
+      - API_HOST=api
+      - API_PORT
+      - API_KEY
     volumes:
       - ./migration/create-user.js:/migration/create-user.js:ro
     networks:
