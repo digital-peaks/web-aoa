@@ -18,10 +18,12 @@ services:
       dockerfile: ./Dockerfile
     command: ["$API_COMMAND"]
     environment:
+      - EXPRESS_PORT=9000
       - NODE_ENV
       - MONGODB_CONNECTION_STRING
       - JWT_SECRET
       - API_KEY
+      - MAX_UPLOAD_FILE_SIZE_MB
     ports:
       - "${API_PORT}:9000"
     volumes:
@@ -44,8 +46,11 @@ services:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
       - MONGO_INITDB_DATABASE
+      # will be used by the init-mongo.js file
+      - MONGO_INITDB_API_USERNAME
+      - MONGO_INITDB_API_PASSWORD
     volumes:
-      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
       - ./mongo/volume:/data/db
     networks:
       - default
