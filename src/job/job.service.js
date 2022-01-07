@@ -12,7 +12,7 @@ const logger = require("../utils/logger");
 const { convertForR } = require("./utils");
 
 const MAX_UPLOAD_SIZE_MB =
-  Number.parseInt(process.env.FILES_MAX_UPLOAD_SIZE_MB, 10) || 10;
+  Number.parseInt(process.env.MAX_UPLOAD_FILE_SIZE_MB, 10) || 10;
 
 const SAMPLES_MIME_TYPES = [
   // GeoJSON (.geojson, .json):

@@ -3,27 +3,29 @@ services:
   frontend:
     image: nschnierer/digital-peaks-web-aoa-frontend:latest
     environment:
-      - NODE_ENV=dev
+      - NODE_ENV
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     networks:
       - default
     depends_on:
       - mongodb
   api:
     image: nschnierer/digital-peaks-web-aoa-api:latest
+    container_name: "api"
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: ["start"]
+    command: ["$API_COMMAND"]
     environment:
-      - NODE_ENV=dev
       - EXPRESS_PORT=9000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:adminpw@mongodb:27017/webaoa
-      - JWT_SECRET=WebAOASecret
-      - API_KEY=43wd3oa3dh73y9ok8fs7wf1pc30sq1
+      - NODE_ENV
+      - MONGODB_CONNECTION_STRING
+      - JWT_SECRET
+      - API_KEY
+      - MAX_UPLOAD_FILE_SIZE_MB
     ports:
-      - "9000:9000"
+      - "${API_PORT:-9000}:9000"
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
@@ -41,14 +43,35 @@ services:
     ports:
       - "27017-27019:27017-27019"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: toor
-      MONGO_INITDB_DATABASE: webaoa
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE
+      # will be used by the init-mongo.js file
+      - MONGO_INITDB_API_USERNAME
+      - MONGO_INITDB_API_PASSWORD
     volumes:
-      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
       - ./mongo/volume:/data/db
     networks:
       - default
+
+  migration:
+    profiles:
+      - migration
+    image: node:16-alpine
+    container_name: "migration"
+    restart: always
+    command: ["/migration/create-user.js"]
+    environment:
+      - API_HOST=api
+      - API_PORT
+      - API_KEY
+    volumes:
+      - ./migration/create-user.js:/migration/create-user.js:ro
+    networks:
+      - default
+    depends_on:
+      - api
 
 networks:
   default:
