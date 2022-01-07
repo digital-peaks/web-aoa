@@ -167,15 +167,15 @@ print("--> AOI bbox tranformed to target crs")
 
 #build a cube view object
 cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
-                                                             left = aoi_bbox_tranformed[1], 
+                                                             left = aoi_bbox_tranformed[1], #set b-box
                                                              right = aoi_bbox_tranformed[3],  
                                                              top = aoi_bbox_tranformed[4], 
                                                              bottom = aoi_bbox_tranformed[2]),
-                                                             dx = resolution_aoi, 
-                                                             dy = resolution_aoi, 
+                                                             dx = resolution_aoi, #set resolution
+                                                             dy = resolution_aoi, #set resolution
                                                              dt = "P1D", #intervall in which images are taken from each time slice
-                                                             aggregation = "median", 
-                                                             resampling = "average")
+                                                             aggregation = "median", #set aggregation method
+                                                             resampling = "average") #set resampling 
 print("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
@@ -207,12 +207,12 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
                 "median(BAEI)")) %>%  
   write_tif( #write result as .tif
     dir = job_path, #to the job folder
-    prefix = basename(classification_image_name),
-    overviews = FALSE,
+    prefix = basename(classification_image_name), #set filename
+    overviews = FALSE, #build no overviews
     COG = TRUE, #write a cloud optimzed image
-    rsmpl_overview = "nearest"
-  )
- filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") 
+    rsmpl_overview = "nearest" #set resamplling method
+  ) 
+ filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") #set filename
 file <- filename #find written file
 file.rename(filename, paste(job_path, "/", "classification_image.tif", sep="")) #rename written file
 
@@ -230,7 +230,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> stac items for AFT retrieved")
   items_poly
   
-  tryCatch({
+  tryCatch({ #try to build a collection from items
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
   }, warning = function(w) {
@@ -252,15 +252,15 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> AFT bbox tranformed to target crs")
   
   cube_view_poly = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
-                                                                left = samplePolygons_bbox_tranformed[1], 
+                                                                left = samplePolygons_bbox_tranformed[1], #set b-box
                                                                 right = samplePolygons_bbox_tranformed[3],  
                                                                 top = samplePolygons_bbox_tranformed[4], 
                                                                 bottom = samplePolygons_bbox_tranformed[2]),
-                                                                dx = resolution_training, 
-                                                                dy = resolution_training, 
-                                                                dt = "P1D", 
-                                                                aggregation = "median", 
-                                                                resampling = "average")
+                                                                dx = resolution_training, #set resolution
+                                                                dy = resolution_training, #set resolution
+                                                                dt = "P1D", #intervall in which images are taken from each time slice
+                                                                aggregation = "median", #set aggregation method
+                                                                resampling = "average") #set resampling 
   print("--> AFT cube view created")
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
@@ -290,16 +290,16 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                   "median(NDVI)", 
                   "median(BSI)", 
                   "median(BAEI)")) %>% 
-    write_tif(
-      dir = job_path,
-      prefix = basename(training_image_name),
-      overviews = FALSE,
-      COG = TRUE,
-      rsmpl_overview = "nearest"
+    write_tif( #write result as .tif
+      dir = job_path, #to jon folder
+      prefix = basename(training_image_name), #set filename
+      overviews = FALSE, #build no overviews
+      COG = TRUE, #write a cloud optimzed image
+      rsmpl_overview = "nearest" #set seasmpling method
     )
-  filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="")
-  file <- filename
-  file.rename(filename, paste(job_path, "/", "training_image.tif", sep=""))
+  filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="") #set filename
+  file <- filename #find written file
+  file.rename(filename, paste(job_path, "/", "training_image.tif", sep="")) #rename written file
   
   print("--> AFT raster cube created")
   print("--> training image written")
