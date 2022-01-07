@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: ["start"]
+    command: ["$API_COMMAND"]
     environment:
       - NODE_ENV
       - MONGODB_CONNECTION_STRING
