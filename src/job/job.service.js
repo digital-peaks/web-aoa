@@ -220,6 +220,18 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
     outputStream.write(log);
   });
 
+  script.on("error", (error) => {
+    const log = `ERROR: ${error}\n`;
+    logger.error(log);
+    outputStream.write(log);
+  });
+
+  script.on("exit", (code, signal) => {
+    const log = `EXIT with code=${code}, signal=${signal}\n`;
+    logger.error(log);
+    outputStream.write(log);
+  });
+
   script.on("close", async (code) => {
     const logCode = `Code: ${code}`;
     logger.info(logCode);

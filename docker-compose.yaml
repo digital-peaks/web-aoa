@@ -4,6 +4,7 @@ services:
     image: nschnierer/digital-peaks-web-aoa-frontend:latest
     environment:
       - NODE_ENV
+      - API_URL
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     networks:
@@ -24,6 +25,7 @@ services:
       - JWT_SECRET
       - API_KEY
       - MAX_UPLOAD_FILE_SIZE_MB
+      - API_URL
     ports:
       - "${API_PORT:-9000}:9000"
     volumes:

@@ -1,6 +1,7 @@
 const { version } = require("../../package.json");
 
 const { EXPRESS_PORT } = process.env;
+const { API_URL = `http://localhost:${EXPRESS_PORT}` } = process.env;
 
 const swaggerDef = {
   openapi: "3.0.0",
@@ -14,7 +15,7 @@ const swaggerDef = {
   },
   servers: [
     {
-      url: `http://localhost:${EXPRESS_PORT}/`,
+      url: API_URL,
     },
   ],
 };
