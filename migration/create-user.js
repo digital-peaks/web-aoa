@@ -1,7 +1,7 @@
 const http = require("http");
 
 const API_HOST = process.env.API_HOST || "";
-const API_PORT = process.env.API_PORT || "";
+const API_PORT = process.env.EXPRESS_PORT || "";
 const API_KEY = process.env.API_KEY || "";
 
 const data = new TextEncoder().encode(

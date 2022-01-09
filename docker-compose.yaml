@@ -2,15 +2,13 @@ version: "3.9"
 services:
   frontend:
     image: nschnierer/digital-peaks-web-aoa-frontend:latest
+    container_name: "frontend"
     environment:
       - NODE_ENV
       - API_URL
-    ports:
-      - "${FRONTEND_PORT:-3000}:80"
     networks:
       - default
-    depends_on:
-      - mongodb
+
   api:
     image: nschnierer/digital-peaks-web-aoa-api:latest
     container_name: "api"
@@ -26,8 +24,6 @@ services:
       - API_KEY
       - MAX_UPLOAD_FILE_SIZE_MB
       - API_URL
-    ports:
-      - "${API_PORT:-9000}:9000"
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
@@ -57,6 +53,25 @@ services:
     networks:
       - default
 
+  haproxy:
+    image: haproxy:2.4
+    ports:
+      - "${HAPROXY_PORT:-80}:8080"
+    volumes:
+      - ./ops/haproxy:/etc/haproxy/configs:ro
+      - ${HAPROXY_CERT:-./ops/haproxy/cert.pem}:/etc/ssl/cert.pem:ro
+    command:
+      [
+        "haproxy",
+        "-f",
+        "/etc/haproxy/configs/haproxy.cfg",
+        "-f",
+        "/etc/haproxy/configs/haproxy.${HAPROXY_CONFIG:-local}.cfg",
+      ]
+    depends_on:
+      - api
+      - frontend
+
   migration:
     profiles:
       - migration
@@ -66,7 +81,7 @@ services:
     command: ["/migration/create-user.js"]
     environment:
       - API_HOST=api
-      - API_PORT
+      - EXPRESS_PORT
       - API_KEY
     volumes:
       - ./migration/create-user.js:/migration/create-user.js:ro
