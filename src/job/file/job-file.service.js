@@ -18,7 +18,7 @@ const isFileInWhitelist = (file = "") =>
   WHITELIST_EXTENSION.includes(path.extname(file));
 
 /**
- * Check if the current is allowed to get data from a job.
+ * Check if the current user is allowed to get data from a job.
  * @param {User} user
  */
 const checkUserJob = async (userId, jobId) => {
