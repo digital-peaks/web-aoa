@@ -47,6 +47,11 @@ const jobSchema = new mongoose.Schema({
   model: {
     type: String,
   },
+  user_id: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+    index: true,
+  },
   created: { type: Date, default: Date.now },
   /**
    * Job is finished.

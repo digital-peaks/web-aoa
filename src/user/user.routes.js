@@ -67,7 +67,7 @@ router.post(
  *     summary: Get current user.
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       "200":
  *         description: OK
@@ -181,6 +181,8 @@ router.get(
  *   put:
  *     summary: Update user.
  *     tags: [Users]
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
