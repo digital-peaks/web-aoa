@@ -8,4 +8,8 @@ router.use("/", require("./job/job.routes"));
 router.use("/", require("./docs/docs.routes"));
 router.use("/", require("./user/user.routes"));
 
-module.exports = router;
+// Set subpath
+const baseRouter = express.Router();
+baseRouter.use("/api", router);
+
+module.exports = baseRouter;
