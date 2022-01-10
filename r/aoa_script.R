@@ -19,8 +19,15 @@ library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-te
 library(kernlab) #kernlab for training kernel based support vector machines
 print("--> libraries imported")
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
+#test working direktory
+test_that('working direktory test', {
+  expect_type(workingDir, "character")
+  expect_equal(workingDir, "~/GitHub/web-aoa/r")
+})
+
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+#job_name <- args[1] #name of the job
+job_name <- "test"
 print(paste("--> Get job id from args:", job_name))
 
 
@@ -34,6 +41,12 @@ print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
 parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job paramters
+
+#test parameters
+test_that('parameters readin test', {
+  expect_type(parameters, "list")
+})
+
 print("--> parameters read")
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
@@ -45,6 +58,12 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   tryCatch({ 
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the model
     model <- readRDS(model_path) #ingest .rds file
+    
+    #test model
+    test_that('pretrained model readin test', {
+      expect_type(model, "list")
+    })
+    
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
@@ -131,6 +150,12 @@ print("--> key attribute set")
 assets = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL") #bands to be retrieved via stac
 print("--> assets set")
 stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
+
+#Test stac
+test_that('stac init test', {
+  expect_type(stac, "list")
+})
+
 print("--> stac initialized")
 print("--> basic processing setup done")
 
@@ -143,6 +168,13 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
   post_request() #post the request
 print("--> stac items for AOI retrieved")
 items_aoi
+
+#Test items
+test_that('items for aoi test', {
+  expect_type(items_aoi, "list")
+  expect_equal(items_aoi$numberMatched > 0, TRUE)
+  expect_equal(items_aoi$numberReturned > 0, TRUE)
+})
 
 tryCatch({ #try to build a collection from items
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
@@ -157,7 +189,19 @@ tryCatch({ #try to build a collection from items
   print("--> image collection for AOI created")
 })
 
+#Test collection
+test_that('collection for aoi test', {
+  expect_type(collection_aoi, "externalptr")
+})
+
 targetSystem <- toString(items_aoi$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
+
+#Test target crs
+test_that('target crs test', {
+  expect_type(targetSystem, "character")
+  expect_equal(nchar(targetSystem) == 4 || nchar(targetSystem) == 5, TRUE)
+})
+
 print("--> target crs retrieved")
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
@@ -175,8 +219,14 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
                                                              dy = resolution_aoi, #set resolution
                                                              dt = "P1D", #intervall in which images are taken from each time slice
                                                              aggregation = "median", #set aggregation method
-                                                             resampling = "average") #set resampling 
-print("--> AOI cube view created")
+                                                             resampling = "average") #set resampling
+
+#Test cube view
+test_that('cube view test', {
+  expect_type(cube_view_aoi, "list")
+})
+
+("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 print("--> cloud mask created")
@@ -211,10 +261,15 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     overviews = FALSE, #build no overviews
     COG = TRUE, #write a cloud optimzed image
     rsmpl_overview = "nearest" #set resamplling method
-  ) 
- filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") #set filename
+  )
+filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") #set filename
 file <- filename #find written file
 file.rename(filename, paste(job_path, "/", "classification_image.tif", sep="")) #rename written file
+
+#test classification image
+test_that('classification image test', {
+  expect_equal(file.exists(paste(job_path, "/", "classification_image", ".tif", sep="")), TRUE)
+})
 
 print("--> AOI raster cube created")
 print("--> classification image written")
@@ -230,6 +285,13 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> stac items for AFT retrieved")
   items_poly
   
+  #Test items
+  test_that('items for training test', {
+    expect_type(items_poly, "list")
+    expect_equal(items_poly$numberMatched > 0, TRUE)
+    expect_equal(items_poly$numberReturned > 0, TRUE)
+  })
+  
   tryCatch({ #try to build a collection from items
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
@@ -240,12 +302,25 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   }, finally = {
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
+    
+    #Test collection
+    test_that('collection for training test', {
+      expect_type(collection_poly, "externalptr")
+    })
+    
     print("--> image collection for AFT created")
   })
   
   targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
   print("--> target crs retrieved")
   targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
+  
+  #Test target crs
+  test_that('target crs test', {
+    expect_type(targetSystem, "character")
+    expect_equal(nchar(targetSystem) == 4 || nchar(targetSystem) == 5, TRUE)
+  })
+  
   samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
   print("--> AFT tranformed to target crs")
   samplePolygons_bbox_tranformed <- st_bbox(samplePolygons_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
@@ -262,6 +337,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                                                                 aggregation = "median", #set aggregation method
                                                                 resampling = "average") #set resampling 
   print("--> AFT cube view created")
+  
+  #Test cube view
+  test_that('cube view test', {
+    expect_type(cube_view_poly, "list")
+  })
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
   print("--> cloud mask created")
@@ -300,6 +380,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="") #set filename
   file <- filename #find written file
   file.rename(filename, paste(job_path, "/", "training_image.tif", sep="")) #rename written file
+  
+  #test training image
+  test_that('classification image test', {
+    expect_equal(file.exists(paste(job_path, "/", "training_image", ".tif", sep="")), TRUE)
+  })
   
   print("--> AFT raster cube created")
   print("--> training image written")
