@@ -181,8 +181,8 @@ print("--> AOI cube view created")
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 print("--> cloud mask created")
 
-gdalcubes_options(threads = 8) #set Threads for raster cube
-print("--> gdalcubes threads set to 8")
+gdalcubes_options(threads = 4) #set Threads for raster cube
+print("--> gdalcubes threads set to 4")
 classification_image_name <- paste('classification_image', sep ="")  #set classifiication image name
 #build a raster_cube object
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
@@ -266,8 +266,8 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
   print("--> cloud mask created")
   
-  gdalcubes_options(threads = 8) #set Threads for raster cube 
-  print("--> gdalcubes threads set to 8")
+  gdalcubes_options(threads = 4) #set Threads for raster cube 
+  print("--> gdalcubes threads set to 4")
   
   training_image_name <- paste('training_image', sep ="") 
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
