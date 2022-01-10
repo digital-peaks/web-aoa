@@ -72,6 +72,27 @@ The boolean parameter ```use_pretrained_model``` is set to ```true``` if the use
 
 The parameter ```model``` defines the name of the user provided model in .rds format. The parameter is only neccesarry if a pretrained model is used.
 
+The ```procedure``` block defines the machine learning precedure. The model cam be traind using a random forrest or an support vector machine. The parameter ```selected``` can either be set to ```rf``` foor random forrest or ```svmradial``` for support vectoc machine.
+
+Parameters for the random forrest are ```n_tree``` which defines the size of the random forrest and ```cross_validation_folds``` which defines the ammount of cross validation folds to be performed to access the precision and accurcy of the trained model. 
+
+```
+"random_forrest": {
+		"n_tree": 800,
+		"cross_validation_folds": 5
+	}
+```
+
+Paramters for the support vector machine are ```sigma```, ```c``` and ```cross_validation_folds``` which defines the ammount of cross validation folds to be performed to access the precision and accurcy of the trained model. 
+
+```
+"support_vector_machine": {
+		"sigma": 0.004385965,
+		"c": 1,
+		"cross_validation_folds": 5
+	}
+```
+
 # Data Aquisition
 # Pre-Processing
 # Model Training and Applicatiion
