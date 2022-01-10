@@ -3,7 +3,7 @@ The aim of the software is to allow users to easiely perform land-use / land-cov
 
 # Dependencies
 1. CAST (https://cran.r-project.org/web/packages/CAST/index.html)
-2. caret (httpscran sp://cran.r-project.org/web/packages/caret/index.html)
+2. caret (https://mran.microsoft.com/snapshot/2017-02-04/web/packages/caret/index.html)
 3. sp (https://cran.r-project.org/web/packages/sp/index.html)
 4. rgdal (https://cran.r-project.org/web/packages/rgdal/index.html)
 5. sf (https://cran.uni-muenster.de/web/packages/sf/index.html)
