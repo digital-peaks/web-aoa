@@ -106,7 +106,7 @@ Spatio-temporal datacubes are used to preprocess the Sentel-2A imagery. A cube v
 
 The time series now needs to be reduces to only one image. The median method is chosen to reduce the time series since the median is robust toward outliers. This is done in order to reduce the effect of remaining cloud coverage. Finally, the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder. This workflow is always performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in which the training datasets are located.
 
-# Model Training
+# Model training
 The next step is to train a new model with the retrieved data and apply it or to apply the provided pretrained model. If a new model is to be trained the values for each band of the image corresponding to the training dataset are extracted if the pixel is inside a polygon or corresponds to a point of the training dataset. Each of the extracted pixels get the class of corresponding training dataset object assigned to it. The predictors for the model are set to the bands and indices present in the image. The model is then trained using a random forest or a support vector machine depending on the users choice. The resulting model is stored as a .rds in the job folder.
 
 # Model application
