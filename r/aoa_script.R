@@ -1,10 +1,9 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
-
 print("--> working directory set")
 
 library(CAST) #CAST-Package for performing AOA
@@ -17,7 +16,14 @@ library(rjson) #rjson for reading json input job file
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 library(kernlab) #kernlab for training kernel based support vector machines
+library(testthat) #testthat for tests 
 print("--> libraries imported")
+
+####test working direktory
+test_that('working direktory test', {
+  expect_equal(typeof(workingDir), "character")
+  expect_equal(workingDir, "~/GitHub/web-aoa/r")
+})
 
 args = commandArgs(trailingOnly=TRUE) #read passed arguments 
 job_name <- args[1] #name of the job
@@ -48,10 +54,12 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      print("--> pretrained model is not valid: it uses to many predictors")
       stop()
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
+        print("--> pretrained model employs predictors which are not part of Sentinel-2A imagery")
         stop() #stop processing
       }
     }
@@ -60,9 +68,6 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     print("Warning!")
   }, error = function(e) {
     print("Error!")
-    print("--> given model employs non-available predictor")
-    print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
-    print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
   }, finally = {
   })
 }
