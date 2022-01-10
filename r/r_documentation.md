@@ -83,7 +83,7 @@ Parameters for the random forrest are ```n_tree``` which defines the size of the
 	}
 ```
 
-Paramters for the support vector machine are ```sigma```, ```c``` and ```cross_validation_folds``` which defines the ammount of cross validation folds to be performed to access the precision and accurcy of the trained model. 
+Paramters for the support vector machine are ```sigma```, ```c``` and ```cross_validation_folds``` which defines the ammount of cross validation folds to be performed to access the precision and accuracy of the trained model. 
 
 ```
 "support_vector_machine": {
