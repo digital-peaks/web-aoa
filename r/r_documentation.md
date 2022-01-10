@@ -93,6 +93,7 @@ Paramters for the support vector machine are ```sigma```, ```c``` and ```cross_v
 	}
 ```
 
+If a pretrained model is provided it get validated. It is checked if it only uses the bands provided by Sentinel-2A imagery as predictors. 
 If all parameters are valid and all neccesary files are present in the corresponding job folder the script will beginn retrieveing the Sentinel-2A imagery. 
 
 # Data Aquisition
@@ -105,9 +106,10 @@ Spatio-temporal datcubes are used to preprocess the Sentel-2A imagery. A cube vi
 
 The timesires now needs to be reduces to only one image. The median method is choosen to reduce the time sieres since the median is robust toward outliers. This is done in order to reduce the effect of remaining cliud coverage. Finally the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder.
 
-This worklow is allways performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in wich the training datsets are located. 
+This worklow is allways performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in wich the training datsets are located. Each of the extrackted pixels get the class of correponding traing dataset object assigned. The predictors for the model are set to the bands and ideces present in the image. The model is then trained using a random forrest or a support vector machine depending on the useser choice. The resulting model is stored as a .rds in the job folder. 
 
 # Model Training and Applicatiion
+The next step is to train a new model with the retrieved data and apply it or to apply the provided pretrained model. If a new model is to be trained the values for each band of the image are extrackted if the pixel is inside a polygon or corresponds to a point of the training datasets. 
 # Area of Applicability and Dissimilarity Index
 # Output
 # Final Notes 
