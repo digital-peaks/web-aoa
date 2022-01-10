@@ -53,6 +53,14 @@ The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for
 
 If the resolution is determined by the script the resolution will be set to a value that each image contains approximatly 10000pixels to ensure fast processing. 
 
+The parameter ```cloud_cover``` determines which percentage of the Sentinal-2A images is allowed to be coverd by clouds. The paramter is user defines.
+
+The parameter-pair ```start_timestamp``` and ```end_timestamp``` define the timeframe form which Sentinel-2A images are retrieved and is also user defined.
+
+The paramter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images will be segmented (the land-use / land-cover classes)
+
+
+
 # Data Aquisition
 # Pre-Processing
 # Model Training and Applicatiion
