@@ -106,11 +106,12 @@ Spatio-temporal datcubes are used to preprocess the Sentel-2A imagery. A cube vi
 
 The timesires now needs to be reduces to only one image. The median method is choosen to reduce the time sieres since the median is robust toward outliers. This is done in order to reduce the effect of remaining cloud coverage. Finally the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder. This worklow is allways performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in which the training datsets are located.
 
-# Model Training and Applicatiion
+# Model Training 
 The next step is to train a new model with the retrieved data and apply it or to apply the provided pretrained model. If a new model is to be trained the values for each band of the image correspondig to the training dataset are extrackted if the pixel is inside a polygon or corresponds to a point of the training dataset. Each of the extrackted pixels get the class of correponding traing dataset object assigned to it. The predictors for the model are set to the bands and idices present in the image. The model is then trained using a random forrest or a support vector machine depending on the useser choice. The resulting model is stored as a .rds in the job folder. 
 
+# Model application
 The prediction (land-use/land-cover classification) is applied using the newly traind or pretrained model on the Sentinel-2A image corresponding to the area of interest. The resulting prediction is stored as an .tif in the job folder.
+With the model and the resulting prediction the AOA and the DI can be derived. Both are stored as .tif in the job folder. In order to give the user some suggestions on how he/she can enhace the model performance some possible locations for additional traing datasets are derived as well. These are created in ares where the model does not perfom in a way which is viewed as acceptable (outside the AOA). This is done according to the chosen sampling method. The resulting points are stored as .geojson in the job folder. 
 
-# Area of Applicability and Dissimilarity Index
 # Output
-# Final Notes 
+
