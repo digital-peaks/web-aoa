@@ -103,6 +103,10 @@ Spatio-temporal datcubes are used to preprocess the Sentel-2A imagery. A cube vi
 
 ![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/indices.PNG)
 
+The timesires now needs to be reduces to only one image. The median method is choosen to reduce the time sieres since the median is robust toward outliers. This is done in order to reduce the effect of remaining cliud coverage. Finally the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder.
+
+This worklow is allways performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in wich the training datsets are located. 
+
 # Model Training and Applicatiion
 # Area of Applicability and Dissimilarity Index
 # Output
