@@ -93,7 +93,11 @@ Paramters for the support vector machine are ```sigma```, ```c``` and ```cross_v
 	}
 ```
 
+If all parameters are valid and all neccesary files are present in the corresponding job folder the script will beginn retrieveing the Sentinel-2A imagery. 
+
 # Data Aquisition
+The retrieval of Sentinel-2A imagery is performed unsing a spatio temporal asset catalog (STAC) and its API. The script retrieves the Sentinel-2A imagery from https://earth-search.aws.element84.com/v0. Images are retrieved from the ```sentinel-s2-l2a-cogs``` collection which contains Sentinel-2A images in an cloud optimized form. If datasets are found which comply to the criteria set in the job_param.json (timeframe, area of interest, cliud cover, etc.) a collection of these items is created. 
+
 # Pre-Processing
 # Model Training and Applicatiion
 # Area of Applicability and Dissimilarity Index
