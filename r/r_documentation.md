@@ -17,7 +17,7 @@ The aim of the software is to allow users to easily perform land-use/land-cover 
 The frontend of the software delivers a set of input informations and stores the in a dedicated job folder. The folder contains:
 -> a job_param.json which contains a multitude of parameters for the processing
 -> an area of interest in .geojson format which defines the geographic area for which the classification will be performed
--> a set of training data if a new model will be trained or the pretrained model.
+-> a set of training data if a new model is trained or a pretrained model
 The job_param.json is structures as follows:
 
 ```
@@ -46,17 +46,17 @@ The job_param.json is structures as follows:
 ```
 A job gets a unique id assigned to it which is stored in the ```name``` parameter.
 
-The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to ```false``` the user defined value of the parameter ```resolution``` will be used. If it is set to ```true``` the resolution is set by the script itself based on the following formula:
+The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to ```false``` the user defined value of the parameter ```resolution``` is used. If it is set to ```true``` the resolution is set by the script itself based on the following formula:
 
 ![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/resolution_formula.PNG)
 
-If the resolution is determined by the script, the resolution will be set to a value that each image contains approximately 10000 pixels to ensure fast processing.
+If the resolution is determined by the script, the resolution is set to a value that each image contains approximately 10000 pixels to ensure fast processing.
 
 The parameter ```cloud_cover``` determines which percentage of the Sentinal-2A images is allowed to be covered by clouds. The parameter is user defines.
 
 The parameter-pair ```start_timestamp``` and ```end_timestamp``` define the timeframe form which Sentinel-2A images are retrieved and is also user defined.
 
-The parameter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images will be segmented (the land-use / land-cover classes).
+The parameter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images is segmented (the land-use / land-cover classes).
 
 The parameter ```samples``` is only need when a new model is to be trained. It contains the name of the .geojson or .gpkg
 file with the training datasets. These are commonly polygonal but points could be used as well.
@@ -94,7 +94,7 @@ Parameters for the support vector machine are ```sigma```, ```c``` and ```cross_
 ```
 
 If a pretrained model is provided it get validated. It is checked if it only uses the bands provided by Sentinel-2A imagery as predictors.
-If all parameters are valid and all nessesary files are present in the corresponding job folder the script will beginn retrieveing the Sentinel-2A imagery.
+If all parameters are valid and all nessesary files are present in the corresponding job folder the script beginns retrieveing the Sentinel-2A imagery.
 
 # Data acquisition
 The retrieval of Sentinel-2A imagery is performed using a spatio temporal asset catalog (STAC) and its API. The script retrieves the Sentinel-2A imagery from https://earth-search.aws.element84.com/v0. Images are retrieved from the ```sentinel-s2-l2a-cogs``` collection which contains Sentinel-2A images in a cloud optimized form. If datasets are found which comply to the criteria set in the job_param.json (timeframe, area of interest, cloud cover, etc.) a collection of these items is created.
