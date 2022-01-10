@@ -23,7 +23,7 @@ The job_param.json is structures as follows:
 
 ```
 {
-  "name": "test",
+  "name": "job_id",
   "use_lookup": "true",
   "resolution": 10,
   "cloud_cover": 15,
@@ -45,7 +45,7 @@ The job_param.json is structures as follows:
   }
 }
 ```
-
+A job gets a unique id assigned to it which is stored in the ```name``` parameter. 
 
 # Data Aquisition
 # Pre-Processing
