@@ -2,16 +2,16 @@
 The aim of the software is to allow users to easiely perform land-use / land-cover classifications based on Sentinel-2A EO-data using machine learning procedures and acess the precision and quality of the results. The assessment can be performed using the Area of Applicability (AoA) (link to paper) and the dissimilarity index (DI). The AOA allows allows for some statements to be made as to the applicability of the trained model to the area of interest. The DI describes how similar the area of interest and the area (its feratures) used for the training of the applyed model are. The implementtation of the processing compinend of the software is implemnted using the language R. The user can decide if a preexisting model should be used or train a new model. 
 
 # Dependencies
-CAST (https://cran.r-project.org/web/packages/CAST/index.html)
-caret (httpscran sp://cran.r-project.org/web/packages/caret/index.html)
-sp (https://cran.r-project.org/web/packages/sp/index.html)
-rgdal (https://cran.r-project.org/web/packages/rgdal/index.html)
-sf (https://cran.uni-muenster.de/web/packages/sf/index.html)
-rstac (https://cran.r-project.org/web/packages/rstac/index.htmlrjson)
-rjson (https://mran.microsoft.com/snapshot/2021-04-12/web/packages/rjson/index.html)
-raster (https://mran.microsoft.com/web/packages/raster/index.html)
-gdalcubes (https://cran.r-project.org/web/packages/gdalcubes/index.html)
-kernlab (https://cran.r-project.org/web/packages/kernlab/index.html)
+1. CAST (https://cran.r-project.org/web/packages/CAST/index.html)
+2. caret (httpscran sp://cran.r-project.org/web/packages/caret/index.html)
+3. sp (https://cran.r-project.org/web/packages/sp/index.html)
+4. rgdal (https://cran.r-project.org/web/packages/rgdal/index.html)
+5. sf (https://cran.uni-muenster.de/web/packages/sf/index.html)
+6. rstac (https://cran.r-project.org/web/packages/rstac/index.htmlrjson)
+7. rjson (https://mran.microsoft.com/snapshot/2021-04-12/web/packages/rjson/index.html)
+8. raster (https://mran.microsoft.com/web/packages/raster/index.html)
+9. gdalcubes (https://cran.r-project.org/web/packages/gdalcubes/index.html)
+10. kernlab (https://cran.r-project.org/web/packages/kernlab/index.html)
 
 # Input
 The frontend of the software delivers a set of input informations and stores the in a dedicated job folder. The folder contains: 
@@ -19,11 +19,11 @@ The frontend of the software delivers a set of input informations and stores the
 -> an area of interest in .geojson format which defines the geographic area for which the classifation will be performed
 -> a set of training data if a new model will be trained or the pretrained model. 
 
-The job_param.json is structured like the following example:
+The job_param.json is structures as follows:
 
 ```
 {
-  "name": "test",
+  "name": "job_id",
   "use_lookup": "true",
   "resolution": 10,
   "cloud_cover": 15,
@@ -45,7 +45,9 @@ The job_param.json is structured like the following example:
   }
 }
 ```
-
+A job gets a unique id assigned to it which is stored in the ```name``` parameter. 
+The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to  ```false``` the user defined value of the parameter  ```resolution``` will be used. If it is set to  ```true``` the resolution is set by the script itself based on the following formula:
+ ```resolution = $\sqrt{area/2}$/10000```
 
 # Data Aquisition
 # Pre-Processing
