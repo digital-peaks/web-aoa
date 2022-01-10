@@ -18,7 +18,6 @@ The frontend of the software delivers a set of input informations and stores the
 -> a job_param.json which contains a multitude of parameters for the processing
 -> an area of interest in .geojson format which defines the geographic area for which the classifation will be performed
 -> a set of training data if a new model will be trained or the pretrained model. 
-
 The job_param.json is structures as follows:
 
 ```
@@ -59,7 +58,13 @@ The parameter-pair ```start_timestamp``` and ```end_timestamp``` define the time
 
 The paramter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images will be segmented (the land-use / land-cover classes)
 
+The parameter ```samples``` is only need when a new model is to be trained. It contains the name of the .geojson or .gpkg
+file with the training datsets. These are commonly polygonal but points could be used as well. 
 
+The parameter ```aoi``` contains the name of the .geojson or .gpkg
+file with the area of interest. 
+
+The parameter ```sampling_strategy``` defines which sampling strategy should be used to make suggestions for potential locations for which additional traing datsets could be retreived in order to optimize the results. Possible value are: ```random```, ```regular```, ```stratified```, ```nonaligned```, ```hexogonal```, ```clustered```, ```Fibonacci```
 
 # Data Aquisition
 # Pre-Processing
