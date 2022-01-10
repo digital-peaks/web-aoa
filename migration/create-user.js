@@ -15,7 +15,7 @@ const data = new TextEncoder().encode(
 const options = {
   hostname: API_HOST,
   port: API_PORT,
-  path: "/users",
+  path: "/api/users",
   method: "POST",
   headers: {
     "Content-Type": "application/json",

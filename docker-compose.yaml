@@ -81,7 +81,7 @@ services:
     command: ["/migration/create-user.js"]
     environment:
       - API_HOST=api
-      - EXPRESS_PORT
+      - EXPRESS_PORT=9000
       - API_KEY
     volumes:
       - ./migration/create-user.js:/migration/create-user.js:ro

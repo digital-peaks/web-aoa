@@ -32,11 +32,12 @@ const maxUploadFileSizeBytes = 1024 * 1024 * MAX_UPLOAD_SIZE_MB;
 /**
  * Delete job.
  * @param {string} id
+ * @param {User} user
  * @returns
  */
-const deleteJob = async (id) => {
+const deleteJob = async (id, user) => {
   // delete from MongoDB
-  const deleted = await Job.deleteOne({ _id: id });
+  const deleted = await Job.deleteOne({ _id: id, user_id: user.id });
 
   // Delete relevant files
   const jobPath = path.join(JOBS_FOLDER, id);
@@ -48,12 +49,18 @@ const deleteJob = async (id) => {
 /**
  * Create a new job.
  * @param {object} body
+ * @param {File[]} files
+ * @param {User} user
+ * @param {boolean} isDemo
  * @returns
  */
-const createJob = async (bodyRaw, files, isDemo = false) => {
+const createJob = async (bodyRaw, files, user, isDemo = false) => {
   // Parse and validate body
   const body = JSON.parse(bodyRaw);
   await new Job(body).validate();
+
+  // Set current user:
+  body.user_id = user.id;
 
   const [samplesFile] = files.samples || [];
   const [modelFile] = files.model || [];
@@ -257,10 +264,11 @@ const createJob = async (bodyRaw, files, isDemo = false) => {
 /**
  * Get job by id.
  * @param {string} id
+ * @param {User} user
  * @returns
  */
-const getJob = async (id) => {
-  const job = await Job.findById(id);
+const getJob = async (id, user) => {
+  const job = await Job.findOne({ _id: id, user_id: user.id });
 
   if (!job) {
     // Returns the request with a error code (in that case 404) with the given message.
@@ -274,12 +282,17 @@ const getJob = async (id) => {
 /**
  * Update existing job.
  * @param {object} body
+ * @param {User} user
  * @returns
  */
-const updateJob = async (body) => {
+const updateJob = async (body, user) => {
   await new Job(body).validate();
 
-  const { matchedCount } = await Job.updateOne({ _id: body.id }, body);
+  const { matchedCount } = await Job.updateOne(
+    { _id: body.id, user_id: user.id },
+    // Make sure that the user isn't able to overwrite this user_id:
+    { ...body, user_id: user.id }
+  );
 
   if (matchedCount === 0) {
     throw new NotFoundException("Unable to update unknown job");
@@ -290,10 +303,11 @@ const updateJob = async (body) => {
 
 /**
  * Get all jobs.
+ * @param {User} user
  * @returns
  */
-const getJobs = async () => {
-  const jobs = await Job.find().sort({ created: "desc" });
+const getJobs = async (user) => {
+  const jobs = await Job.find({ user_id: user.id }).sort({ created: "desc" });
   return jobs;
 };
 

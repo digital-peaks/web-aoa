@@ -1,6 +1,7 @@
 const express = require("express");
 const asyncHandler = require("express-async-handler");
 const JobFileService = require("./job-file.service");
+const auth = require("../../auth/auth.middleware");
 
 const router = express.Router();
 
@@ -10,6 +11,8 @@ const router = express.Router();
  *   get:
  *     summary: Get a list of job files.
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -26,6 +29,8 @@ const router = express.Router();
  *                type: array
  *                items:
  *                  $ref: '#/components/schemas/JobFile'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "404":
  *         $ref: '#/components/responses/NotFoundException'
  *       "500":
@@ -33,8 +38,9 @@ const router = express.Router();
  */
 router.get(
   "/jobs/:jobId/files/",
+  auth(),
   asyncHandler(async (req, res) => {
-    const result = await JobFileService.getJobFiles(req.params.jobId);
+    const result = await JobFileService.getJobFiles(req.params.jobId, req.user);
     res.json(result);
   })
 );
@@ -45,6 +51,8 @@ router.get(
  *   get:
  *     summary: Get job file by name.
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -68,6 +76,8 @@ router.get(
  *     responses:
  *       "200":
  *         description: OK
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "404":
  *         $ref: '#/components/responses/NotFoundException'
  *       "500":
@@ -75,11 +85,18 @@ router.get(
  */
 router.get(
   "/jobs/:jobId/files/:name",
+  auth(),
   asyncHandler(async (req, res) => {
     const { download } = req.query;
-    await JobFileService.getJobFile(res, req.params.jobId, req.params.name, {
-      download,
-    });
+    await JobFileService.getJobFile(
+      res,
+      req.params.jobId,
+      req.params.name,
+      req.user,
+      {
+        download,
+      }
+    );
   })
 );
 
