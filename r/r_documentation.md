@@ -66,6 +66,12 @@ file with the area of interest.
 
 The parameter ```sampling_strategy``` defines which sampling strategy should be used to make suggestions for potential locations for which additional traing datsets could be retreived in order to optimize the results. Possible value are: ```random```, ```regular```, ```stratified```, ```nonaligned```, ```hexogonal```, ```clustered```, ```Fibonacci```
 
+The parameter ```obj_id``` defines the primary key of the attribute table of the training dataset.
+
+The boolean parameter ```use_pretrained_model``` is set to ```true``` if the user provides a pretrained model or to ```false``` if the user decides to train a new model based on user provided training datasets.
+
+The parameter ```model``` defines the name of the user provided model in .rds format. The parameter is only neccesarry if a pretrained model is used.
+
 # Data Aquisition
 # Pre-Processing
 # Model Training and Applicatiion
