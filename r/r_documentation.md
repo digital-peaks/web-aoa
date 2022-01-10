@@ -101,7 +101,7 @@ The retrieval of Sentinel-2A imagery is performed unsing a spatio temporal asset
 # Pre-Processing
 Spatio-temporal datcubes are used to preprocess the Sentel-2A imagery. A cube view object defines the spatial and temporal extends, sets the output resolution and the output crs. From this cube view object a raster cube can becreated. All images in the collection are processed in this datacube. Bands ```B01```,  ```B02```,  ```B03```,  ```B04```,  ```B05```,  ```B06```,  ```B07```,  ```B08```,  ```B08A```,  ```B09```,  ```B11``` and ```B12``` are selected from each Sentinel-2A image in the timeseries. Additionaly some Indices are calculated with the aim to enhance the land-use/land-cover classifcation. The indices choosen are: the Normalized Difference Vegetation Index (NDVI), the Bare SOil Index (BSI) and the Build-Up Area Extracktion Index (BAEI) gievn by: 
 
-![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/resolution_formula.PNG)
+![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/indices.PNG)
 
 # Model Training and Applicatiion
 # Area of Applicability and Dissimilarity Index
