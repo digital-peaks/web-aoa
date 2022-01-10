@@ -47,7 +47,7 @@ The job_param.json is structures as follows:
 ```
 A job gets a unique id assigned to it which is stored in the ```name``` parameter. 
 The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to  ```false``` the user defined value of the parameter  ```resolution``` will be used. If it is set to  ```true``` the resolution is set by the script itself based on the following formula:
- ```resolution = $\sqrt{area/2}$/10000```
+ resolution = $\sqrt{area/2}$/10000
 
 # Data Aquisition
 # Pre-Processing
