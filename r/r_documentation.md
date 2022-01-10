@@ -114,4 +114,12 @@ The prediction (land-use/land-cover classification) is applied using the newly t
 With the model and the resulting prediction the AOA and the DI can be derived. Both are stored as .tif in the job folder. In order to give the user some suggestions on how he/she can enhace the model performance some possible locations for additional traing datasets are derived as well. These are created in ares where the model does not perfom in a way which is viewed as acceptable (outside the AOA). This is done according to the chosen sampling method. The resulting points are stored as .geojson in the job folder. 
 
 # Output
+The result of the script are various files:
+1. Sentinel-2A image of the area of interest in the choosen resolution as a .tif (if no pretrained model is provided an additional image for the area of the training datasets is stored as well)
+2. newly trained or pretrained model as .rds
+3. prediction (land-use/land-cover classification) as a .tif
+4. Area of Applicability as a .tif
+5. Dissimilarity Index as a .tif
+6. suggested additional sampling locations as .geojson
+7. resul .json containing the accuracy and kappa index of the model and the discriptive names of the land-use/land-cover classes
 
