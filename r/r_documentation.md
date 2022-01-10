@@ -47,9 +47,10 @@ The job_param.json is structures as follows:
 ```
 A job gets a unique id assigned to it which is stored in the ```name``` parameter. 
 The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to  ```false``` the user defined value of the parameter  ```resolution``` will be used. If it is set to  ```true``` the resolution is set by the script itself based on the following formula:
-<p align="center">
-  <src="https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/resolution_formula.PNG">
-</p>
+
+![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/resolution_formula.PNG)
+
+If the resolution is determined by the script the resolution will be set to a value that each image contains approximatly 10000pixels to ensure fast processing. 
 
 # Data Aquisition
 # Pre-Processing
