@@ -6,7 +6,14 @@ const Job = require("../job.model");
 
 const JOBS_FOLDER = path.join(__dirname, "/../../../jobs");
 
-const WHITELIST_EXTENSION = [".geojson", ".gpkg", ".tif", ".rds", ".log"];
+const WHITELIST_EXTENSION = [
+  ".geojson",
+  ".gpkg",
+  ".tif",
+  ".rds",
+  ".log",
+  ".json",
+];
 
 /**
  * Checks if the extension is in the whitelist.
