@@ -501,6 +501,10 @@ write(exportJson, result_path) #export result JSON
 
 #test output
 test_that('output test', {
+  expect_equal(file.exists(paste(job_path, "/", "aoa_aoa", ".tif", sep="")), TRUE) 
+  expect_equal(file.exists(paste(job_path, "/", "aoa_di", ".tif", sep="")), TRUE)  
+  expect_equal(file.exists(paste(job_path, "/", "pred", ".tif", sep="")), TRUE)
+  expect_equal(file.exists(paste(job_path, "/", "result", ".json", sep="")), TRUE)  
 })
 
 #############Sampling
@@ -525,6 +529,12 @@ st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set targe
 spatial_points_dataframe_transformed <- st_transform(spatial_points_dataframe_converted, as.numeric("4326")) #transform AOI to Sentinel-Image EPSG
 st_write(spatial_points_dataframe_transformed, geojson_path, driver = "GeoJSON") #export as GeoJSON
 print("--> suggested locations for extra training polygons written")
+
+#test sampling locations
+test_that('sampling locations test', {
+  expect_equal(file.exists(paste(job_path, "/", "suggestion", ".geojson", sep="")), TRUE) 
+})
+
 print("--> processing done")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
