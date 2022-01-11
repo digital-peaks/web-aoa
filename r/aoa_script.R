@@ -498,6 +498,11 @@ result[[2]] <- model$results$Accuracy #store accuracy
 result[[3]] <- model$results$Kappa #store kappa
 exportJson <- toJSON(result) #covert to JSON
 write(exportJson, result_path) #export result JSON
+
+#test output
+test_that('output test', {
+})
+
 #############Sampling
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
