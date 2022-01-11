@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 
 print("--> working directory set")
@@ -399,6 +399,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
   print("--> band names assigned")
   training_stack 
+  
+  #test training stac
+  test_that('training stac test', {
+    expect_type(training_stack, "S4")
+  })
 }
 
 classification_stack_path <- paste(job_path, "/", classification_image_name, ".tif", sep="") #set path to classification datasets
@@ -408,11 +413,21 @@ names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","
 print("--> band names assigned")
 classification_stack 
 
+#test classification stac
+test_that('classification stac test', {
+  expect_type(classification_stack , "S4")
+})
+
 if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
   training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
   print("--> training data extracted from raster")
   training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
   print("--> response assigned to training data")
+  
+  #test training data
+  test_that('training data test', {
+    expect_type(training_data , "list")
+  })
 
   predictors <- names(training_stack) #set predictor variables
   print("--> predictors set")
@@ -450,9 +465,20 @@ prediction <- predict(classification_stack, model) #predict LU/LC
 print("--> classification done")
 prediction
 
+#test prediction
+test_that('prediction test', {
+  expect_type(prediction , "S4")
+})
+
 aoa<- aoa(classification_stack, model) #calculate aoa
 print("--> AOA calculation done done")
 aoa
+
+#test aoa
+test_that('aoa test', {
+  expect_type(aoa , "S4")
+})
+
 print("--> geostatistical processing done")
 
 #############Export
@@ -496,6 +522,6 @@ st_write(spatial_points_dataframe_transformed, geojson_path, driver = "GeoJSON")
 print("--> suggested locations for extra training polygons written")
 print("--> processing done")
 end_time <- Sys.time() #set end time 
-overall_time <- paste("--> processing time: ", (end_time - start_time)/60, " Minutes", sep="") #culculate overall processing time
+overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
 print(overall_time)
 
