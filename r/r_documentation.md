@@ -101,6 +101,7 @@ Spatio-temporal datacubes are used to preprocess the Sentel-2A imagery. A cube v
 
 ![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/indices.PNG)
 
+The model can employ the Sentinal-2A bands and the mentioned indices as predictors. 
 The time series now needs to be reduces to only one image. The median method is chosen to reduce the time series since the median is robust toward outliers. This is done in order to reduce the effect of remaining cloud coverage. Finally, the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder. This workflow is always performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in which the training datasets are located.
 
 # Model training
