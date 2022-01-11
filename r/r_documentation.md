@@ -12,6 +12,7 @@ The aim of the software is to allow users to easily perform land-use/land-cover 
 8. raster (https://mran.microsoft.com/web/packages/raster/index.html)
 9. gdalcubes (https://cran.r-project.org/web/packages/gdalcubes/index.html)
 10. kernlab (https://cran.r-project.org/web/packages/kernlab/index.html)
+11. testthat (https://mran.microsoft.com/web/packages/testthat/index.html)
 
 # Input
 The frontend of the software delivers a set of input informations and stores the in a dedicated job folder. The folder contains:
@@ -70,7 +71,6 @@ The boolean parameter ```use_pretrained_model``` is set to ```true``` if the use
 The parameter ```model``` defines the name of the user provided model in .rds format. The parameter is only nescesarry if a pretrained model is used.
 
 The model cam be trained using a random forest or a support vector machine. 
-
 Parameters for the random forest are ```n_tree``` which defines the size of the random forest and ```cross_validation_folds``` which defines the amount of cross-validation folds to be performed to access the precision and accuracy of the trained model.
 
 ```
