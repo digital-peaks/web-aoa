@@ -24,6 +24,7 @@ print("--> libraries imported")
 test_that('working direktory test', {
   expect_type(workingDir, "character")
   expect_equal(workingDir, "~/GitHub/web-aoa/r")
+  print("--> working directory passed testing")
 })
 
 #args = commandArgs(trailingOnly=TRUE) #read passed arguments 
@@ -51,6 +52,7 @@ test_that('parameters readin test', {
   expect_equal(parameters$cloud_cover >= 0 || parameters$cloud_cover <= 100, TRUE)
   expect_equal(parameters$resolution > 0, TRUE)
   expect_equal(parameters$sampling_strategy %in% c("regular", "stratified", "nonaligned", "clusterd", "Fibonacci"), TRUE)
+  print("--> parameters passed testing")
 })
 
 print("--> parameters read")
