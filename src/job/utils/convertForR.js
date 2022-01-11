@@ -22,12 +22,9 @@ const convertForR = (jobRaw) => {
     model: "model.rds",
     samples: "samples.geojson",
     aoi: "aoi.geojson",
-    procedure: {
-      selected: "rf",
-      random_forrest: {
-        n_tree: 800,
-        cross_validation_folds: 5,
-      },
+    random_forrest: {
+      n_tree: 800,
+      cross_validation_folds: 5,
     },
   };
 
@@ -53,6 +50,11 @@ const convertForR = (jobRaw) => {
 
   if (job.area_of_interest) {
     delete job.area_of_interest;
+  }
+
+  if (job.support_vector_machine) {
+    // Remove default machine learning procedure:
+    delete job.random_forrest;
   }
 
   return {

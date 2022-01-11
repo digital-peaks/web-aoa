@@ -1,6 +1,6 @@
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -16,8 +16,6 @@ components:
           type: string
         name:
           type: string
-        area_of_interest:
-          type: object
         use_lookup:
           type: boolean
         resolution:
@@ -32,6 +30,26 @@ components:
           type: string
         use_pretrained_model:
           type: boolean
+        random_forrest:
+          type: object
+          properties:
+            n_tree:
+              type: number
+            cross_validation_folds:
+              type: number
+        support_vector_machine:
+          type: object
+          properties:
+            sigma:
+              type: number
+            c:
+              type: number
+            cross_validation_folds:
+              type: number
+        area_of_interest:
+          type: object
+        user_id:
+          type: string
         created:
           type: date-time
         finished:
@@ -50,9 +68,11 @@ components:
         end_timestamp: "2020-06-01T00:00:00.000Z"
         sampling_strategy: "regular"
         use_pretrained_model: false
+        user_id: "61b5dac80ba4add9236dc231"
         created: "2021-12-12T11:19:36.420Z"
         finished: null
         status: running
+        random_forrest: { "n_tree": 800, "cross_validation_folds": 5 }
         area_of_interest:
           {
             "type": "Feature",

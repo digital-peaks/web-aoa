@@ -338,24 +338,26 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   print("--> predictors set")
   response <- response #set response value
   print("--> response set")
-  if(parameters$procedure$selected == "rf") { #if random forrest is selected
+  if("random_forrest" %in% names(parameters)) { #if random forrest is selected
     print("--> random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
                     method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
                     importance=TRUE, #store importance of predictors
-                    ntree=parameters$procedure$random_forrest$n_tree, #max number of trees
-                    trControl=trainControl(method="cv", number=parameters$procedure$random_forrest$cross_validation_folds)) #perform cross validation to assess model
+                    ntree=parameters$random_forrest$n_tree, #max number of trees
+                    trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("--> model trained")
     model
-  }
-  if(parameters$procedure$selected == "svmradial") { #if support vector machine is selected
+  } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("--> support vector machine will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$procedure$support_vector_machine$c,.sigma=parameters$procedure$support_vector_machine$sigma), #with support vector machine
+                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c,.sigma=parameters$support_vector_machine$sigma), #with support vector machine
                    importance=TRUE, #store importance of predictors
-                   trControl=trainControl(method="cv", number=parameters$procedure$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
+                   trControl=trainControl(method="cv", number=parameters$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
     print("--> model trained")
     model
+  } else {
+    print("--> No machine learning procedure was provided")
+    stop() # Stop script
   }
   model_path <- paste(job_path, "/", "model.rds", sep="") #set model path
   saveRDS(model, model_path) #store model as .rds

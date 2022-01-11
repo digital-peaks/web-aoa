@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const asyncHandler = require("express-async-handler");
 const JobService = require("./job.service");
+const auth = require("../auth/auth.middleware");
 
 const upload = multer();
 
@@ -23,6 +24,8 @@ router.use("/", require("./file/job-file.routes"));
  *   post:
  *     summary: Create a job
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     consumes:
  *       - multipart/form-data
  *     requestBody:
@@ -78,6 +81,10 @@ router.use("/", require("./file/job-file.routes"));
  *                     "end_timestamp": "2020-06-01T00:00:00.000Z",
  *                     "sampling_strategy": "regular",
  *                     "use_pretrained_model": false,
+ *                     "random_forrest": {
+ *                       "n_tree": 800,
+ *                       "cross_validation_folds": 5
+ *                     },
  *                     "area_of_interest": {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[7.571640014648437,51.93653958505235],[7.608976364135742,51.93653958505235],[7.608976364135742,51.96521171889782],[7.571640014648437,51.96521171889782],[7.571640014648437,51.93653958505235]]]}}
  *                   }
  *     responses:
@@ -89,11 +96,14 @@ router.use("/", require("./file/job-file.routes"));
  *                $ref: '#/components/schemas/Job'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "500":
  *         $ref: '#/components/responses/InternalServerErrorException'
  */
 router.post(
   "/jobs",
+  auth(),
   upload.fields([
     { name: "samples", maxCount: 1 },
     { name: "model", maxCount: 1 },
@@ -104,7 +114,11 @@ router.post(
   asyncHandler(async (req, res) => {
     // Please keep this logic simple and just call the service function.
     // Validations or MongoDB requests should run inside the service.
-    const result = await JobService.createJob(req.body.job, req.files);
+    const result = await JobService.createJob(
+      req.body.job,
+      req.files,
+      req.user
+    );
     res.status(201).json(result);
   })
 );
@@ -115,6 +129,8 @@ router.post(
  *   get:
  *     summary: Get job by id.
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -131,6 +147,8 @@ router.post(
  *                $ref: '#/components/schemas/Job'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "404":
  *         $ref: '#/components/responses/NotFoundException'
  *       "500":
@@ -138,8 +156,9 @@ router.post(
  */
 router.get(
   "/jobs/:jobId",
+  auth(),
   asyncHandler(async (req, res) => {
-    const result = await JobService.getJob(req.params.jobId);
+    const result = await JobService.getJob(req.params.jobId, req.user);
     res.json(result);
   })
 );
@@ -150,6 +169,8 @@ router.get(
  *   put:
  *     summary: Update job.
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -165,13 +186,16 @@ router.get(
  *                $ref: '#/components/schemas/Job'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "500":
  *         $ref: '#/components/responses/InternalServerErrorException'
  */
 router.put(
   "/jobs",
+  auth(),
   asyncHandler(async (req, res) => {
-    const result = await JobService.updateJob(req.body);
+    const result = await JobService.updateJob(req.body, req.user);
     res.json(result);
   })
 );
@@ -182,6 +206,8 @@ router.put(
  *   get:
  *     summary: Get all jobs
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       "200":
  *         description: OK
@@ -193,13 +219,16 @@ router.put(
  *                  $ref: '#/components/schemas/Job'
  *       "400":
  *         $ref: '#/components/responses/BadRequestException'
+ *       "401":
+ *         $ref: '#/components/responses/UnauthorizedException'
  *       "500":
  *         $ref: '#/components/responses/InternalServerErrorException'
  */
 router.get(
   "/jobs",
+  auth(),
   asyncHandler(async (req, res) => {
-    const result = await JobService.getJobs();
+    const result = await JobService.getJobs(req.user);
     res.json(result);
   })
 );
@@ -210,6 +239,8 @@ router.get(
  *   delete:
  *     summary: Delete job by id.
  *     tags: [Jobs]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -227,8 +258,9 @@ router.get(
  */
 router.delete(
   "/jobs/:jobId",
+  auth(),
   asyncHandler(async (req, res) => {
-    const result = await JobService.deleteJob(req.params.jobId);
+    const result = await JobService.deleteJob(req.params.jobId, req.user);
     res.json(result);
   })
 );

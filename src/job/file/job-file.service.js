@@ -2,10 +2,18 @@ const fs = require("fs");
 const path = require("path");
 const { NotFoundException } = require("../../utils/exceptions");
 const logger = require("../../utils/logger");
+const Job = require("../job.model");
 
 const JOBS_FOLDER = path.join(__dirname, "/../../../jobs");
 
-const WHITELIST_EXTENSION = [".geojson", ".gpkg", ".tif", ".rds", ".log"];
+const WHITELIST_EXTENSION = [
+  ".geojson",
+  ".gpkg",
+  ".tif",
+  ".rds",
+  ".log",
+  ".json",
+];
 
 /**
  * Checks if the extension is in the whitelist.
@@ -17,11 +25,29 @@ const isFileInWhitelist = (file = "") =>
   WHITELIST_EXTENSION.includes(path.extname(file));
 
 /**
+ * Check if the current user is allowed to get data from a job.
+ * @param {User} user
+ */
+const checkUserJob = async (userId, jobId) => {
+  const job = await Job.findOne({ _id: jobId, user_id: userId });
+  if (!job) {
+    throw new NotFoundException("Unable to find job file");
+  }
+};
+
+/**
  * Get job file by name.
- * @param {string} id
+ * @param {object} res
+ * @param {string} jobId
+ * @param {string} name
+ * @param {User} user
+ * @param {object} options
+ * @param {boolean} options.download
  * @returns
  */
-const getJobFile = async (res, jobId, name, options = {}) => {
+const getJobFile = async (res, jobId, name, user, options = {}) => {
+  await checkUserJob(user.id, jobId);
+
   const { download = false } = options;
 
   const folderPath = path.join(JOBS_FOLDER, jobId);
@@ -60,9 +86,13 @@ const getJobFile = async (res, jobId, name, options = {}) => {
 
 /**
  * Get all job files.
+ * @param {string} jobId
+ * @param {User} user
  * @returns
  */
-const getJobFiles = async (jobId) => {
+const getJobFiles = async (jobId, user) => {
+  await checkUserJob(user.id, jobId);
+
   const folderPath = path.join(JOBS_FOLDER, jobId);
 
   let jobDir = [];

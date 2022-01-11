@@ -48,7 +48,7 @@ services:
       - MONGO_INITDB_API_USERNAME
       - MONGO_INITDB_API_PASSWORD
     volumes:
-      - ./mongo/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
+      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - ./mongo/volume:/data/db
     networks:
       - default
@@ -81,7 +81,7 @@ services:
     command: ["/migration/create-user.js"]
     environment:
       - API_HOST=api
-      - EXPRESS_PORT
+      - EXPRESS_PORT=9000
       - API_KEY
     volumes:
       - ./migration/create-user.js:/migration/create-user.js:ro
