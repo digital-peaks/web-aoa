@@ -81,6 +81,10 @@ router.use("/", require("./file/job-file.routes"));
  *                     "end_timestamp": "2020-06-01T00:00:00.000Z",
  *                     "sampling_strategy": "regular",
  *                     "use_pretrained_model": false,
+ *                     "random_forrest": {
+ *                       "n_tree": 800,
+ *                       "cross_validation_folds": 5
+ *                     },
  *                     "area_of_interest": {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[7.571640014648437,51.93653958505235],[7.608976364135742,51.93653958505235],[7.608976364135742,51.96521171889782],[7.571640014648437,51.96521171889782],[7.571640014648437,51.93653958505235]]]}}
  *                   }
  *     responses:
