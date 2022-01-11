@@ -25,15 +25,15 @@ test_that('working direktory test', {
   expect_equal(workingDir, "~/GitHub/web-aoa/r")
 })
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+#job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
 
 #Result JSON
 result <- vector(mode="list", length=3) #initialize result JSON
 
-#job_name <- "test" #for local tests
+job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 
 print(paste("--> Job path: ", job_path, sep=""))
