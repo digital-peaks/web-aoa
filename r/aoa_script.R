@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-#workingDir <- "/app/jobs" #set working directory 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("--> working directory set")
 
@@ -19,21 +19,15 @@ library(kernlab) #kernlab for training kernel based support vector machines
 library(testthat) #testthat for tests 
 print("--> libraries imported")
 
-####test working direktory
-test_that('working direktory test', {
-  expect_equal(typeof(workingDir), "character")
-  expect_equal(workingDir, "~/GitHub/web-aoa/r")
-})
-
-#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-#job_name <- args[1] #name of the job
+args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+job_name <- args[1] #name of the job
 print(paste("--> Get job id from args:", job_name))
 
 
 #Result JSON
 result <- vector(mode="list", length=3) #initialize result JSON
 
-job_name <- "test" #for local tests
+#job_name <- "test" #for local tests
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 
 print(paste("--> Job path: ", job_path, sep=""))
