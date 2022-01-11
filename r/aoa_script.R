@@ -17,6 +17,7 @@ library(rjson) #rjson for reading json input job file
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 library(kernlab) #kernlab for training kernel based support vector machines
+library(testthat) #testthat for tests
 print("--> libraries imported")
 
 #test working direktory
@@ -40,11 +41,16 @@ job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
-parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job paramters
+parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job parameters
 
 #test parameters
 test_that('parameters readin test', {
   expect_type(parameters, "list")
+  expect_equal(parameters$use_lookup == "true" ||parameters$use_lookup == "false", TRUE)
+  expect_equal(parameters$use_pretrained_model == "true" || parameters$use_pretrained_model == "false", TRUE)
+  expect_equal(parameters$cloud_cover >= 0 || parameters$cloud_cover <= 100, TRUE)
+  expect_equal(parameters$resolution > 0, TRUE)
+  expect_equal(parameters$sampling_strategy %in% c("regular", "stratified", "nonaligned", "clusterd", "Fibonacci"), TRUE)
 })
 
 print("--> parameters read")
@@ -53,6 +59,14 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
+  
+  #test samples
+  test_that('samples readin test', {
+    expect_equal(parameters$response %in% 	colnames(samplePolygons), TRUE)
+    expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
+  })
+  
+  
   print("--> new model will be trained")
 } else {
   tryCatch({ 
@@ -154,6 +168,7 @@ stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
 #Test stac
 test_that('stac init test', {
   expect_type(stac, "list")
+  expect_equal(stac$base_url == "https://earth-search.aws.element84.com/v0", TRUE)
 })
 
 print("--> stac initialized")
@@ -174,6 +189,7 @@ test_that('items for aoi test', {
   expect_type(items_aoi, "list")
   expect_equal(items_aoi$numberMatched > 0, TRUE)
   expect_equal(items_aoi$numberReturned > 0, TRUE)
+  expect_equal(items_aoi$type, "FeatureCollection")
 })
 
 tryCatch({ #try to build a collection from items
@@ -224,6 +240,9 @@ cube_view_aoi = cube_view(srs = targetString,  extent = list(t0 = t0, t1 = t1,
 #Test cube view
 test_that('cube view test', {
   expect_type(cube_view_aoi, "list")
+  expect_equal(cube_view_aoi$aggregation == "median", TRUE)
+  expect_equal(cube_view_aoi$resampling == "average", TRUE)
+  expect_equal(cube_view_aoi$time$t0 == t0 && cube_view_aoi$time$t1 == t1, TRUE)
 })
 
 ("--> AOI cube view created")
@@ -231,8 +250,8 @@ test_that('cube view test', {
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 print("--> cloud mask created")
 
-gdalcubes_options(threads = 8) #set Threads for raster cube
-print("--> gdalcubes threads set to 8")
+gdalcubes_options(threads = 4) #set Threads for raster cube
+print("--> gdalcubes threads set to 4")
 classification_image_name <- paste('classification_image', sep ="")  #set classifiication image name
 #build a raster_cube object
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
@@ -290,6 +309,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     expect_type(items_poly, "list")
     expect_equal(items_poly$numberMatched > 0, TRUE)
     expect_equal(items_poly$numberReturned > 0, TRUE)
+    expect_equal(items_poly$type, "FeatureCollection")
   })
   
   tryCatch({ #try to build a collection from items
@@ -341,13 +361,16 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   #Test cube view
   test_that('cube view test', {
     expect_type(cube_view_poly, "list")
+    expect_equal(cube_view_poly$aggregation == "median", TRUE)
+    expect_equal(cube_view_poly$resampling == "average", TRUE)
+    expect_equal(cube_view_poly$time$t0 == t0 && cube_view_aoi$time$t1 == t1, TRUE)
   })
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
   print("--> cloud mask created")
   
-  gdalcubes_options(threads = 8) #set Threads for raster cube 
-  print("--> gdalcubes threads set to 8")
+  gdalcubes_options(threads = 4) #set Threads for raster cube 
+  print("--> gdalcubes threads set to 4")
   
   training_image_name <- paste('training_image', sep ="") 
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
@@ -427,9 +450,12 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   #test training data
   test_that('training data test', {
     expect_type(training_data , "list")
+    expect_equal("ID" %in% colnames(training_data), TRUE)
+    expect_equal(response %in% colnames(training_data), TRUE)
   })
 
   predictors <- names(training_stack) #set predictor variables
+  
   print("--> predictors set")
   response <- response #set response value
   print("--> response set")
