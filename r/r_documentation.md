@@ -35,12 +35,9 @@ The job_param.json is structures as follows:
   "obj_id": "PID",
   "use_pretrained_model": "false",
   "model": "model.rds",
-  "procedure": {
-    "selected": "rf",
-    "random_forrest": {
+  "random_forrest": {
       "n_tree": 800,
       "cross_validation_folds": 5
-    }
   }
 }
 ```
@@ -72,7 +69,7 @@ The boolean parameter ```use_pretrained_model``` is set to ```true``` if the use
 
 The parameter ```model``` defines the name of the user provided model in .rds format. The parameter is only nescesarry if a pretrained model is used.
 
-The ```procedure``` block defines the machine learning procedure. The model cam be trained using a random forest or a support vector machine. The parameter ```selected``` can either be set to ```rf``` foor random forest or ```svmradial``` for support vector machine.
+The model cam be trained using a random forest or a support vector machine. 
 
 Parameters for the random forest are ```n_tree``` which defines the size of the random forest and ```cross_validation_folds``` which defines the amount of cross-validation folds to be performed to access the precision and accuracy of the trained model.
 
