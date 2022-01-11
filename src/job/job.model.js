@@ -44,6 +44,27 @@ const jobSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  support_vector_machine: {
+    required: false,
+    sigma: {
+      type: Number,
+    },
+    c: {
+      type: Number,
+    },
+    cross_validation_folds: {
+      type: Number,
+    },
+  },
+  random_forrest: {
+    required: false,
+    n_tree: {
+      type: Number,
+    },
+    cross_validation_folds: {
+      type: Number,
+    },
+  },
   model: {
     type: String,
   },
