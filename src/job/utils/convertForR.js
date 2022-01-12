@@ -6,8 +6,6 @@ const { format } = require("date-fns");
  * @returns
  */
 const convertForR = (jobRaw) => {
-  const job = { ...jobRaw };
-
   const defaultJob = {
     name: "Unnamed job",
     resolution: 10,
@@ -22,20 +20,16 @@ const convertForR = (jobRaw) => {
     model: "model.rds",
     samples: "samples.geojson",
     aoi: "aoi.geojson",
-    random_forrest: {
-      n_tree: 800,
-      cross_validation_folds: 5,
-    },
   };
 
+  const job = { ...defaultJob, ...jobRaw };
+
   // Format date-time to just a date:
-  let start_timestamp = "2020-01-01";
-  let end_timestamp = "2020-12-01";
   if (job.start_timestamp) {
-    start_timestamp = format(new Date(job.start_timestamp), "yyyy-MM-dd");
+    job.start_timestamp = format(new Date(job.start_timestamp), "yyyy-MM-dd");
   }
   if (job.end_timestamp) {
-    end_timestamp = format(new Date(job.end_timestamp), "yyyy-MM-dd");
+    job.end_timestamp = format(new Date(job.end_timestamp), "yyyy-MM-dd");
   }
 
   // Convert Boolean fields to string.
@@ -43,26 +37,17 @@ const convertForR = (jobRaw) => {
   job.use_lookup = job.use_lookup ? "true" : "false";
   job.use_pretrained_model = job.use_pretrained_model ? "true" : "false";
 
+  if (job.area_of_interest) {
+    // The AOI will be saved as aoi.json for the R script
+    delete job.area_of_interest;
+  }
+
   // Remove undefined values
   Object.keys(job).forEach((key) =>
     job[key] === undefined ? delete job[key] : {}
   );
 
-  if (job.area_of_interest) {
-    delete job.area_of_interest;
-  }
-
-  if (job.support_vector_machine) {
-    // Remove default machine learning procedure:
-    delete job.random_forrest;
-  }
-
-  return {
-    ...defaultJob,
-    ...job,
-    start_timestamp,
-    end_timestamp,
-  };
+  return job;
 };
 
 module.exports = convertForR;
