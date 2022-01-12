@@ -58,6 +58,13 @@ test_that('parameters readin test', {
 print("--> parameters read")
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
+  
+  #test sample file
+  test_that('samples file test', {
+    expect_equal(file.exists(paste(job_path, "/", parameters$samples, sep="")), TRUE)
+    print("--> sample file passed testing")
+  })
+  
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
@@ -66,18 +73,24 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   test_that('samples readin test', {
     expect_equal(parameters$response %in% 	colnames(samplePolygons), TRUE)
     expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
+    print("--> samples passed testing")
   })
-  
   
   print("--> new model will be trained")
 } else {
   tryCatch({ 
+    test_that('model file test', {
+      expect_equal(file.exists(paste(job_path, "/", parameters$model, sep="")), TRUE)
+      print("--> model file passed testing")
+    })
+    
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the model
     model <- readRDS(model_path) #ingest .rds file
     
     #test model
     test_that('pretrained model readin test', {
       expect_type(model, "list")
+      expect_equal()
     })
     
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
@@ -102,6 +115,12 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   })
 }
 
+#test aoi file
+test_that('aoi file test', {
+  expect_equal(file.exists(paste(job_path, "/", parameters$aoi, sep="")), TRUE)
+  print("--> aoi file passed testing")
+})
+
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
@@ -116,6 +135,12 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
   } else { 
     optimal_resolution <- sqrt(aoi_area/10000) #function for calculating the optimal resolution for a 10000 pixel image
   }
+  
+  #test optimal resolution
+  test_that('optimal resolution test', {
+    expect_equal(optimal_resolution > 0, TRUE)
+    print("--> optimal resolution passed testing")
+  })
   
   #resolution lookup table
   if(optimal_resolution <= 10) {
@@ -428,6 +453,18 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   #test training stac
   test_that('training stac test', {
     expect_type(training_stack, "S4")
+    expect_equal(training_stack@layers[[1]]@data@names, "B01")
+    expect_equal(training_stack@layers[[2]]@data@names, "B02")
+    expect_equal(training_stack@layers[[3]]@data@names, "B03")
+    expect_equal(training_stack@layers[[4]]@data@names, "B04")
+    expect_equal(training_stack@layers[[5]]@data@names, "B05")
+    expect_equal(training_stack@layers[[6]]@data@names, "B06")
+    expect_equal(training_stack@layers[[7]]@data@names, "B07")
+    expect_equal(training_stack@layers[[8]]@data@names, "B08")
+    expect_equal(training_stack@layers[[9]]@data@names, "B8A")
+    expect_equal(training_stack@layers[[10]]@data@names, "B09")
+    expect_equal(training_stack@layers[[11]]@data@names, "B11")
+    expect_equal(training_stack@layers[[12]]@data@names, "B12")
   })
 }
 
@@ -441,6 +478,18 @@ classification_stack
 #test classification stac
 test_that('classification stac test', {
   expect_type(classification_stack , "S4")
+  expect_equal(classification_stack@layers[[1]]@data@names, "B01")
+  expect_equal(classification_stack@layers[[2]]@data@names, "B02")
+  expect_equal(classification_stack@layers[[3]]@data@names, "B03")
+  expect_equal(classification_stack@layers[[4]]@data@names, "B04")
+  expect_equal(classification_stack@layers[[5]]@data@names, "B05")
+  expect_equal(classification_stack@layers[[6]]@data@names, "B06")
+  expect_equal(classification_stack@layers[[7]]@data@names, "B07")
+  expect_equal(classification_stack@layers[[8]]@data@names, "B08")
+  expect_equal(classification_stack@layers[[9]]@data@names, "B8A")
+  expect_equal(classification_stack@layers[[10]]@data@names, "B09")
+  expect_equal(classification_stack@layers[[11]]@data@names, "B11")
+  expect_equal(classification_stack@layers[[12]]@data@names, "B12")
 })
 
 if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
@@ -535,6 +584,7 @@ test_that('output test', {
   expect_equal(file.exists(paste(job_path, "/", "aoa_di", ".tif", sep="")), TRUE)  
   expect_equal(file.exists(paste(job_path, "/", "pred", ".tif", sep="")), TRUE)
   expect_equal(file.exists(paste(job_path, "/", "result", ".json", sep="")), TRUE)  
+  print("--> outputs passed testing")
 })
 
 #############Sampling
