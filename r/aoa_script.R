@@ -523,7 +523,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("--> support vector machine will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c,.sigma=parameters$support_vector_machine$sigma), #with support vector machine
+                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c,.sigma= parameters$support_vector_machine$sigma), #with support vector machine
                    importance=TRUE, #store importance of predictors
                    trControl=trainControl(method="cv", number=parameters$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
     print("--> model trained")
@@ -534,6 +534,12 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   }
   model_path <- paste(job_path, "/", "model.rds", sep="") #set model path
   saveRDS(model, model_path) #store model as .rds
+  
+  #test model
+  test_that('model test', {
+    expect_equal(file.exists(paste(job_path, "/", "model", ".rds", sep="")), TRUE)
+  })
+  
   print("--> model exported")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
@@ -548,7 +554,7 @@ prediction
 #test prediction
 test_that('prediction test', {
   expect_type(prediction , "S4")
-  expect_equal()
+  expect_equal(setequal(c(prediction@data@attributes[[1]]$value), training_data$class) , TRUE)
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
@@ -558,6 +564,8 @@ aoa
 #test aoa
 test_that('aoa test', {
   expect_type(aoa , "S4")
+  expect_equal(aoa@layers[[1]]@data@names == "DI", TRUE)
+  expect_equal(aoa@layers[[2]]@data@names == "AOA", TRUE)
 })
 
 print("--> geostatistical processing done")
@@ -569,9 +577,9 @@ prediction_path <- paste(job_path, "/", "pred", sep="") #set prediction path
 geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="") #set geojon path for suggested sampling locations
 result_path <- paste(job_path, "/", "result.json", sep="") #set result path for result JSON
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
-print("--> AOA image written")
+print("--> aoa image written")
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
-print("--> DI image written")
+print("--> di image written")
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 print("--> prediction image written")
 result[[1]] <- model$levels #store classes

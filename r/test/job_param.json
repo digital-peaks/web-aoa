@@ -6,14 +6,15 @@
   "start_timestamp": "2020-01-01",
   "end_timestamp": "2020-12-01",
   "response": "class",
-  "samples": "samplePolygons.gpkg",
-  "aoi": "aoi.gpkg",
+  "samples": "samples.geojson",
+  "aoi": "aoi.geojson",
   "sampling_strategy": "regular",
   "obj_id": "PID",
   "use_pretrained_model": "false",
   "model": "model.rds",
-  "random_forrest": {
-    "n_tree": 800,
-    "cross_validation_folds": 5
+  "support_vector_machine": {
+	"sigma": 0.004385965,
+	"c": 1,
+	"cross_validation_folds": 5
   }
 }
