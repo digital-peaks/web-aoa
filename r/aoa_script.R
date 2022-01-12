@@ -503,6 +503,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
     expect_type(training_data , "list")
     expect_equal("ID" %in% colnames(training_data), TRUE)
     expect_equal(response %in% colnames(training_data), TRUE)
+    expect_equal(nrow(training_data) > 0, TRUE)
   })
 
   predictors <- names(training_stack) #set predictor variables
@@ -547,6 +548,7 @@ prediction
 #test prediction
 test_that('prediction test', {
   expect_type(prediction , "S4")
+  expect_equal()
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
