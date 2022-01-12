@@ -16,7 +16,6 @@ library(rjson) #rjson for reading json input job file
 library(raster) #raster-Package for working with various raster formats
 library(gdalcubes) #gdalcubes-Package for creating, handling and using spatio-temporal datacubes
 library(kernlab) #kernlab for training kernel based support vector machines
-library(testthat) #testthat for tests 
 print("--> libraries imported")
 
 args = commandArgs(trailingOnly=TRUE) #read passed arguments 
