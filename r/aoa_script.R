@@ -156,8 +156,8 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
   aoi_area <- st_area(aoi) #calculate area of the aoi
   if(parameters$use_pretrained_model == "false") { #if samples are ingestable
     sample_area <- sum(st_area(st_as_sfc(samplePolygon_bbox))) #calculate area of the samples
-    optimal_resolution_samples <- as.numeric(sqrt(((sample_area)/2)/10000)) #calculate optimal resolution for image with 10000 pixels
-    optimal_resolution_aoi <- as.numeric(sqrt(aoi_area/10000))
+    optimal_resolution_samples <- as.numeric(sqrt(((sample_area)/2)/1000000)) #calculate optimal resolution for image with 10000 pixels
+    optimal_resolution_aoi <- as.numeric(sqrt(aoi_area/1000000))
     resolution_training <- find_resolution(optimal_resolution_samples)
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     
@@ -166,7 +166,7 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     print("--> output resolution for samples set to ")
     print(resolution_training)
   } else { 
-    optimal_resolution_aoi <- sqrt(aoi_area/10000) #function for calculating the optimal resolution for a 10000 pixel image
+    optimal_resolution_aoi <- sqrt(aoi_area/1000000) #function for calculating the optimal resolution for a 10000 pixel image
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     print("--> output resolution for aoi set to ")
     print(resolution_aoi)
