@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory 
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 
 print("--> working directory set")
@@ -23,13 +23,13 @@ print("--> libraries imported")
 #test working direktory
 test_that('working direktory test', {
   expect_type(workingDir, "character")
-  expect_equal(workingDir, "/app/jobs")
+  expect_equal(workingDir, "~/GitHub/web-aoa/r")
   print("--> working directory passed testing")
 })
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
-#job_name <- "test"
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+#job_name <- args[1] #name of the job
+job_name <- "test"
 print(paste("--> Get job id from args:", job_name))
 
 
@@ -66,7 +66,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   })
   
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
-  samplePolygons <- read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+  samplePolygons <- st_read(samplePolygons_path, crs = 4326) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
   
   #test samples
@@ -122,58 +122,63 @@ test_that('aoi file test', {
 })
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
-aoi <- read_sf(aoi_path, crs = 4326) #AOI (Dezimalgrad)
+aoi <- st_read(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 print("--> AOI and AFT set")
+
+find_resolution <- function(resolution) {
+  if(resolution <= 10) {
+    optimal_resolution <- 10
+  }
+  if(resolution <= 20 && resolution > 10) {
+    optimal_resolution <- 20
+  }
+  if(resolution <= 50 && resolution > 20) {
+    optimal_resolution <- 50
+  }
+  if(resolution <= 100 && resolution > 50) {
+    optimal_resolution <- 100
+  }
+  if(resolution <= 200 && resolution > 100) {
+    optimal_resolution <- 200
+  }
+  if(resolution <= 400 && resolution > 200) {
+    optimal_resolution <- 400
+  } 
+  if (resolution > 400) {
+    optimal_resolution <- 500
+  }
+  return(optimal_resolution)
+}
 
 #select resolution
 if(parameters$use_lookup == "true") { #if look-table should be used to find optimal resolution
   aoi_area <- st_area(aoi) #calculate area of the aoi
   if(parameters$use_pretrained_model == "false") { #if samples are ingestable
-    sample_area <- sum(st_area(samplePolygons)) #calculate area of the samples
-    optimal_resolution <- as.numeric(sqrt(((aoi_area+sample_area)/2)/10000)) #calculate optimal resolution for image with 10000 pixels
+    sample_area <- sum(st_area(st_as_sfc(samplePolygon_bbox))) #calculate area of the samples
+    optimal_resolution_samples <- as.numeric(sqrt(((sample_area)/2)/10000)) #calculate optimal resolution for image with 10000 pixels
+    optimal_resolution_aoi <- as.numeric(sqrt(aoi_area/10000))
+    resolution_training <- find_resolution(optimal_resolution_samples)
+    resolution_aoi <- find_resolution(optimal_resolution_aoi)
+    
+    print("--> output resolution for aoi set to ")
+    print(resolution_aoi)
+    print("--> output resolution for samples set to ")
+    print(resolution_training)
   } else { 
-    optimal_resolution <- sqrt(aoi_area/10000) #function for calculating the optimal resolution for a 10000 pixel image
+    optimal_resolution_aoi <- sqrt(aoi_area/10000) #function for calculating the optimal resolution for a 10000 pixel image
+    resolution_aoi <- find_resolution(optimal_resolution_aoi)
+    print("--> output resolution for aoi set to ")
+    print(resolution_aoi)
   }
   
   #test optimal resolution
   test_that('optimal resolution test', {
-    expect_equal(optimal_resolution > 0, TRUE)
+    expect_equal(resolution_aoi > 0, TRUE)
+    expect_equal(resolution_training > 0, TRUE)
     print("--> optimal resolution passed testing")
   })
-  
-  #resolution lookup table
-  if(optimal_resolution <= 10) {
-    resolution_aoi <- 10
-    resolution_training <- 10
-  }
-  if(optimal_resolution <= 20 && optimal_resolution > 10) {
-    resolution_aoi <- 20
-    resolution_training <- 20
-  }
-  if(optimal_resolution <= 50 && optimal_resolution > 20) {
-    resolution_aoi <- 50
-    resolution_training <- 50
-  }
-  if(optimal_resolution <= 100 && optimal_resolution > 50) {
-    resolution_aoi <- 100
-    resolution_training <- 100
-  }
-  if(optimal_resolution <= 200 && optimal_resolution > 100) {
-    resolution_aoi <- 200
-    resolution_training <- 200
-  }
-  if(optimal_resolution <= 400 && optimal_resolution > 200) {
-    resolution_aoi <- 400
-    resolution_training <- 400
-  }
-} else {
-  resolution_aoi <- parameters$resolution #Resolutin of the Output-Image (Meter) 
-  resolution_training <- parameters$resolution #Resolutin of the Output-Image (Meter)
-  print("--> custom resolution will be used")
 }
-print("--> output resolution set to ")
-print(resolution_aoi)
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 print("--> cloudcover set")
