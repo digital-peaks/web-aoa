@@ -4,7 +4,6 @@ start_time <- Sys.time() #set start time
 #workingDir <- "~/GitHub/web-aoa/r" #set working directory 
 workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
-
 print("--> working directory set")
 
 library(CAST) #CAST-Package for performing AOA
@@ -48,10 +47,12 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      print("--> pretrained model is not valid: it uses to many predictors")
       stop()
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
+        print("--> pretrained model employs predictors which are not part of Sentinel-2A imagery")
         stop() #stop processing
       }
     }
@@ -60,9 +61,6 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     print("Warning!")
   }, error = function(e) {
     print("Error!")
-    print("--> given model employs non-available predictor")
-    print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
-    print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
   }, finally = {
   })
 }
@@ -181,8 +179,8 @@ print("--> AOI cube view created")
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
 print("--> cloud mask created")
 
-gdalcubes_options(threads = 8) #set Threads for raster cube
-print("--> gdalcubes threads set to 8")
+gdalcubes_options(threads = 4) #set Threads for raster cube
+print("--> gdalcubes threads set to 4")
 classification_image_name <- paste('classification_image', sep ="")  #set classifiication image name
 #build a raster_cube object
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
@@ -266,8 +264,8 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
   print("--> cloud mask created")
   
-  gdalcubes_options(threads = 8) #set Threads for raster cube 
-  print("--> gdalcubes threads set to 8")
+  gdalcubes_options(threads = 4) #set Threads for raster cube 
+  print("--> gdalcubes threads set to 4")
   
   training_image_name <- paste('training_image', sep ="") 
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
