@@ -2,17 +2,17 @@
 The aim of the software is to allow users to easily perform land-use/land-cover classifications based on Sentinel-2A EO-data using machine learning procedures and assess the precision and quality of the results. The assessment can be performed using the Area of Applicability (AoA) (link to paper) and the dissimilarity index (DI). The AOA allows for some statements to be made as to the applicability of the trained model to the area of interest. The DI describes how similar the area of interest and the area (its features) used for the training of the applied model are. The implementation of the processing compinend of the software is implemented using the language R. The user can decide if a preexisting model should be used or train a new model.
 
 # Dependencies
-1. CAST (https://cran.r-project.org/web/packages/CAST/index.html)
-2. caret (https://mran.microsoft.com/snapshot/2017-02-04/web/packages/caret/index.html)
-3. sp (https://cran.r-project.org/web/packages/sp/index.html)
-4. rgdal (https://cran.r-project.org/web/packages/rgdal/index.html)
-5. sf (https://cran.uni-muenster.de/web/packages/sf/index.html)
-6. rstac (https://cran.r-project.org/web/packages/rstac/index.htmlrjson)
-7. rjson (https://mran.microsoft.com/snapshot/2021-04-12/web/packages/rjson/index.html)
-8. raster (https://mran.microsoft.com/web/packages/raster/index.html)
-9. gdalcubes (https://cran.r-project.org/web/packages/gdalcubes/index.html)
-10. kernlab (https://cran.r-project.org/web/packages/kernlab/index.html)
-11. testthat (https://mran.microsoft.com/web/packages/testthat/index.html)
+1. CAST (https://cran.r-project.org/web/packages/CAST/index.html) / License: GPL-2, GPL-3
+2. caret (https://mran.microsoft.com/snapshot/2017-02-04/web/packages/caret/index.html) / License: GPL-2, GPL-3
+3. sp (https://cran.r-project.org/web/packages/sp/index.html) / License: GPL-2, GPL-3
+4. rgdal (https://cran.r-project.org/web/packages/rgdal/index.html) / License: GPL-2, GPL-3
+5. sf (https://cran.uni-muenster.de/web/packages/sf/index.html) / License: GPL-2, MIT
+6. rstac (https://cran.r-project.org/web/packages/rstac/index.html) / License: MIT
+7. rjson (https://mran.microsoft.com/snapshot/2021-04-12/web/packages/rjson/index.html) / License: GPL-2
+8. raster (https://mran.microsoft.com/web/packages/raster/index.html) / License: GPL-3
+9. gdalcubes (https://cran.r-project.org/web/packages/gdalcubes/index.html) / License: MIT
+10. kernlab (https://cran.r-project.org/web/packages/kernlab/index.html) / License: GPL-2
+11. testthat (https://mran.microsoft.com/web/packages/testthat/index.html) / License: MIT
 
 # Input
 The frontend of the software delivers a set of input informations and stores the in a dedicated job folder. The folder contains:
@@ -57,10 +57,10 @@ The parameter-pair ```start_timestamp``` and ```end_timestamp``` define the time
 The parameter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images is segmented (the land-use / land-cover classes).
 
 The parameter ```samples``` is only need when a new model is to be trained. It contains the name of the .geojson or .gpkg
-file with the training datasets. These are commonly polygonal but points could be used as well.
+file with the training datasets. These are commonly polygonal but points could be used as well. Sample datsets must conform to the WGS coodinate system (EPSG 4326).
 
 The parameter ```aoi``` contains the name of the .geojson or .gpkg
-file with the area of interest.
+file with the area of interest. AOI datset must conform to the WGS coodinate system (EPSG 4326).
 
 The parameter ```sampling_strategy``` defines which sampling strategy should be used to make suggestions for potential locations for which additional training datasets could be retrieved in order to optimize the results. Possible value are: ```random```, ```regular```, ```stratified```, ```nonaligned```, ```hexogonal```, ```clustered```, ```Fibonacci```
 
