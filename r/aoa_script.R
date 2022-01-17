@@ -170,7 +170,10 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     print("--> output resolution for aoi set to ")
     print(resolution_aoi)
-  }
+  } else {
+  resolution_training <- parameters$resolution
+  resolution_aoi <- parameters$resolution
+}
   
   #test optimal resolution
   test_that('optimal resolution test', {
