@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-workingDir <- "~/GitHub/web-aoa/r" #set working directory 
-#workingDir <- "/app/jobs" #set working directory 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 
 print("--> working directory set")
@@ -27,9 +27,9 @@ test_that('working direktory test', {
   print("--> working directory passed testing")
 })
 
-#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-#job_name <- args[1] #name of the job
-job_name <- "test"
+args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+job_name <- args[1] #name of the job
+#job_name <- "test" #for local tests
 print(paste("--> Get job id from args:", job_name))
 
 
