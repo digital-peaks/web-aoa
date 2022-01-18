@@ -28,7 +28,10 @@ test_that('working direktory test', {
 
 args = commandArgs(trailingOnly=TRUE) #read passed arguments 
 job_name <- args[1] #name of the job
-#job_name <- "test" #for local tests
+
+
+#job_name <- "demo" #for local tests
+
 print(paste("--> Get job id from args:", job_name))
 
 
@@ -168,7 +171,8 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     print("--> output resolution for aoi set to ")
     print(resolution_aoi)
-  } else {
+  } 
+} else {
   resolution_training <- parameters$resolution
   resolution_aoi <- parameters$resolution
 }
@@ -179,7 +183,6 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     expect_equal(resolution_training > 0, TRUE)
     print("--> optimal resolution passed testing")
   })
-}
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 print("--> cloudcover set")
@@ -406,6 +409,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> gdalcubes threads set to 4")
   
   training_image_name <- paste('training_image', sep ="") 
+  
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
     select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
     apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
@@ -548,7 +552,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   
   print("--> model exported")
   } else { #use pretrained model if one is provided
-    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples
+    model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
     model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
 }
