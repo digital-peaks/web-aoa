@@ -4,7 +4,6 @@ start_time <- Sys.time() #set start time
 #workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
 workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
-
 print("--> working directory set")
 
 library(CAST) #CAST-Package for performing AOA
@@ -29,7 +28,10 @@ test_that('working direktory test', {
 
 args = commandArgs(trailingOnly=TRUE) #read passed arguments 
 job_name <- args[1] #name of the job
+
+
 #job_name <- "demo" #for local tests
+
 print(paste("--> Get job id from args:", job_name))
 
 
@@ -96,10 +98,12 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      print("--> pretrained model is not valid: it uses to many predictors")
       stop()
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
+        print("--> pretrained model employs predictors which are not part of Sentinel-2A imagery")
         stop() #stop processing
       }
     }
@@ -108,9 +112,6 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     print("Warning!")
   }, error = function(e) {
     print("Error!")
-    print("--> given model employs non-available predictor")
-    print("--> a valid model could employ the following bands from Sentinel-2A imagery:")
-    print("--> B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B11, B12, SCL, NDVI, BSI, BAEI")
   }, finally = {
   })
 }
@@ -170,7 +171,12 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     print("--> output resolution for aoi set to ")
     print(resolution_aoi)
-  }
+  } 
+} else {
+  resolution_training <- parameters$resolution
+  resolution_aoi <- parameters$resolution
+}
+
   
   #test optimal resolution
   test_that('optimal resolution test', {
@@ -178,10 +184,6 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     expect_equal(resolution_training > 0, TRUE)
     print("--> optimal resolution passed testing")
   })
-} else {
-  resolution_training <- parameters$resolution
-  resolution_aoi <- parameters$resolution
-}
 
 cloud_cover <- parameters$cloud_cover #Threshold for Cloud-Cover in Sentinel-Images
 print("--> cloudcover set")
