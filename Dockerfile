@@ -33,6 +33,7 @@ RUN R -e "install.packages('sf')"
 RUN R -e "install.packages('sp')"
 RUN R -e "install.packages('randomForest')"
 RUN R -e "install.packages('kernlab')"
+RUN R -e "install.packages('testthat')"
 
 COPY package*.json ./
 # Install with a clean slate
