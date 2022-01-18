@@ -22,25 +22,21 @@ print("--> libraries imported")
 #test working direktory
 test_that('working direktory test', {
   expect_type(workingDir, "character")
-  expect_equal(workingDir, "~/GitHub/web-aoa/r")
+  expect_equal(workingDir, "/app/jobs")
   print("--> working directory passed testing")
 })
 
 args = commandArgs(trailingOnly=TRUE) #read passed arguments 
 job_name <- args[1] #name of the job
-
-
 #job_name <- "demo" #for local tests
 
 print(paste("--> Get job id from args:", job_name))
 
-
 #Result JSON
 result <- vector(mode="list", length=3) #initialize result JSON
 
-#job_name <- "test" #for local tests
+#Path to Job
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
-
 print(paste("--> Job path: ", job_path, sep=""))
 
 #Parameters
