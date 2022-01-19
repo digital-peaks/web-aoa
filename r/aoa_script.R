@@ -89,6 +89,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     test_that('pretrained model readin test', {
       expect_type(model, "list")
       expect_equal()
+      print("--> model passed testing")
     })
     
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
@@ -201,6 +202,7 @@ stac = stac("https://earth-search.aws.element84.com/v0") #initialize stac
 test_that('stac init test', {
   expect_type(stac, "list")
   expect_equal(stac$base_url == "https://earth-search.aws.element84.com/v0", TRUE)
+  print("--> stac initialisation passed testing")
 })
 
 print("--> stac initialized")
@@ -222,6 +224,7 @@ test_that('items for aoi test', {
   expect_equal(items_aoi$numberMatched > 0, TRUE)
   expect_equal(items_aoi$numberReturned > 0, TRUE)
   expect_equal(items_aoi$type, "FeatureCollection")
+  print("--> item collection for aoi passed testing")
 })
 
 tryCatch({ #try to build a collection from items
@@ -248,6 +251,7 @@ targetSystem <- toString(items_aoi$features[[1]]$properties$`proj:epsg`) #read E
 test_that('target crs test', {
   expect_type(targetSystem, "character")
   expect_equal(nchar(targetSystem) == 4 || nchar(targetSystem) == 5, TRUE)
+  print("--> crs passed testing")
 })
 
 print("--> target crs retrieved")
@@ -320,6 +324,7 @@ file.rename(filename, paste(job_path, "/", "classification_image.tif", sep="")) 
 #test classification image
 test_that('classification image test', {
   expect_equal(file.exists(paste(job_path, "/", "classification_image", ".tif", sep="")), TRUE)
+  print("--> classification image passed testing")
 })
 
 print("--> AOI raster cube created")
@@ -371,6 +376,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   test_that('target crs test', {
     expect_type(targetSystem, "character")
     expect_equal(nchar(targetSystem) == 4 || nchar(targetSystem) == 5, TRUE)
+    print("--> crs passed testing")
   })
   
   samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
@@ -471,6 +477,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     expect_equal(training_stack@layers[[10]]@data@names, "B09")
     expect_equal(training_stack@layers[[11]]@data@names, "B11")
     expect_equal(training_stack@layers[[12]]@data@names, "B12")
+    print("--> training stack passed testing")
   })
 }
 
@@ -496,6 +503,7 @@ test_that('classification stac test', {
   expect_equal(classification_stack@layers[[10]]@data@names, "B09")
   expect_equal(classification_stack@layers[[11]]@data@names, "B11")
   expect_equal(classification_stack@layers[[12]]@data@names, "B12")
+  print("--> classification stack passed testing")
 })
 
 if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
@@ -510,11 +518,12 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
     expect_equal("ID" %in% colnames(training_data), TRUE)
     expect_equal(response %in% colnames(training_data), TRUE)
     expect_equal(nrow(training_data) > 0, TRUE)
+    print("--> training data passed testing")
   })
 
   predictors <- names(training_stack) #set predictor variables
-  
   print("--> predictors set")
+  
   response <- response #set response value
   print("--> response set")
   if("random_forrest" %in% names(parameters)) { #if random forrest is selected
@@ -544,6 +553,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   #test model
   test_that('model test', {
     expect_equal(file.exists(paste(job_path, "/", "model", ".rds", sep="")), TRUE)
+    print("--> model file passed testing")
   })
   
   print("--> model exported")
@@ -561,6 +571,7 @@ prediction
 test_that('prediction test', {
   expect_type(prediction , "S4")
   expect_equal(setequal(c(prediction@data@attributes[[1]]$value), training_data$class) , TRUE)
+  print("--> prediction passed testing")
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
@@ -572,6 +583,7 @@ test_that('aoa test', {
   expect_type(aoa , "S4")
   expect_equal(aoa@layers[[1]]@data@names == "DI", TRUE)
   expect_equal(aoa@layers[[2]]@data@names == "AOA", TRUE)
+  print("--> aoa passed testing")
 })
 
 print("--> geostatistical processing done")
