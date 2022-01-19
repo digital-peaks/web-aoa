@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("--> working directory set")
 
@@ -26,9 +26,9 @@ test_that('working direktory test', {
   print("--> working directory passed testing")
 })
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
-#job_name <- "demo" #for local tests
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+#job_name <- args[1] #name of the job
+job_name <- "demo" #for local tests
 
 print(paste("--> Get job id from args:", job_name))
 
@@ -69,8 +69,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   
   #test samples
   test_that('samples readin test', {
-    expect_equal(parameters$response %in% 	colnames(samplePolygons), TRUE)
-    expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
+    expect_equal(parameters$response %in% colnames(samplePolygons), TRUE)
+    expect_equal(parameters$obj_id %in% colnames(samplePolygons), TRUE)
     print("--> samples passed testing")
   })
   
@@ -612,7 +612,7 @@ test_that('output test', {
   expect_equal(file.exists(paste(job_path, "/", "aoa_di", ".tif", sep="")), TRUE)  
   expect_equal(file.exists(paste(job_path, "/", "pred", ".tif", sep="")), TRUE)
   expect_equal(file.exists(paste(job_path, "/", "result", ".json", sep="")), TRUE)  
-  print("--> outputs passed testing")
+  print("--> output rasters passed testing")
 })
 
 #############Sampling
@@ -641,10 +641,10 @@ print("--> suggested locations for extra training polygons written")
 #test sampling locations
 test_that('sampling locations test', {
   expect_equal(file.exists(paste(job_path, "/", "suggestion", ".geojson", sep="")), TRUE) 
+  print("--> suggested sampling locations passed testing")
 })
 
 print("--> processing done")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
 print(overall_time)
-
