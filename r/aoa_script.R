@@ -206,7 +206,8 @@ test_that('stac init test', {
   print("--> stac initialisation passed testing")
 })
 print("--> stac initialized")
-print("--> basic processing setup done")
+print("--> processing setup done")
+print("###############################################")
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>% #retrieve sentinel bands for area of interest
@@ -450,6 +451,8 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     expect_equal(file.exists(paste(job_path, "/", "training_image", ".tif", sep="")), TRUE)
   })
   print("--> training image written")
+  print("###############################################")
+
 }
 
 #############Training
@@ -533,6 +536,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("--> random forrest trained")
+
     #model
   } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("--> support vector machine will be trained")
@@ -554,12 +558,14 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   test_that('model test', {
     expect_equal(file.exists(paste(job_path, "/", "model", ".rds", sep="")), TRUE)
     print("--> model file passed testing")
+    print("###############################################")
   })
   print("--> model exported")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
     model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
+    print("###############################################")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
@@ -584,7 +590,9 @@ test_that('aoa test', {
   expect_equal(aoa@layers[[2]]@data@names == "AOA", TRUE)
   print("--> aoa passed testing")
 })
-print("--> geostatistical processing done")
+print("--> raster processing done")
+print("###############################################")
+
 
 #############Export
 aoa_path <- paste(job_path, "/", "aoa_aoa", sep="") #set area of applicability path
@@ -645,5 +653,6 @@ test_that('sampling locations test', {
 })
 
 print("--> processing done")
+print("###############################################")
 end_time <- Sys.time() #set end time 
 print(paste("--> processing time: ", trunc((end_time - start_time)), " Minutes", sep=""))
