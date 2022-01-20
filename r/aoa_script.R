@@ -1,6 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
 
+options(warn=-1) #supress warnings
+
 workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
 #workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
@@ -69,8 +71,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   
   #test samples
   test_that('samples readin test', {
-    expect_equal(parameters$response %in% colnames(samplePolygons), TRUE)
-    expect_equal(parameters$obj_id %in% colnames(samplePolygons), TRUE)
+    expect_equal(parameters$samples_class %in% 	colnames(samplePolygons), TRUE)
+    expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
     print("--> samples passed testing")
   })
   
@@ -187,11 +189,11 @@ t0 <- parameters$start_timestamp #start timestamp
 t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 print("--> timeframe set")
-response <- parameters$response #Value to be used in classification
+response <- parameters$samples_class #Value to be used in classification
 print("--> response set")
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
 print("--> sampling strategy set")
-key <- parameters$obj_id #attribute to match samples with the response
+key <- parameters$obj_id #attribute to match samples with the 
 print("--> key attribute set")
 
 assets = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL") #bands to be retrieved via stac
@@ -206,7 +208,8 @@ test_that('stac init test', {
 })
 
 print("--> stac initialized")
-print("--> basic processing setup done")
+print("--> processing setup done")
+print("=======================================================================")
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>% #retrieve sentinel bands for area of interest
@@ -216,7 +219,7 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
               limit = 100) %>% #limit results to 100 datasets
   post_request() #post the request
 print("--> stac items for AOI retrieved")
-items_aoi
+#items_aoi
 
 #Test items
 test_that('items for aoi test', {
@@ -329,6 +332,7 @@ test_that('classification image test', {
 
 print("--> AOI raster cube created")
 print("--> classification image written")
+print("=======================================================================")
 
 #############Get Image-Data for sample Polygons
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used to trainig data must be retrieved
@@ -339,7 +343,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                 limit = 100) %>% #set max results to 100 items
     post_request() #post request
   print("--> stac items for AFT retrieved")
-  items_poly
+  #items_poly
   
   #Test items
   test_that('items for training test', {
@@ -450,7 +454,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   
   print("--> AFT raster cube created")
   print("--> training image written")
-  print("--> raster data retrieval done")
+  print("=======================================================================")
 }
 
 #############Training
@@ -460,7 +464,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> training stac created")
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
   print("--> band names assigned")
-  training_stack 
+  #training_stack 
   
   #test training stac
   test_that('training stac test', {
@@ -486,7 +490,7 @@ classification_stack <- stack(classification_stack_path) #load classification im
 print("--> classification stac created")
 names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
 print("--> band names assigned")
-classification_stack 
+#classification_stack 
 
 #test classification stac
 test_that('classification stac test', {
@@ -557,15 +561,20 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   })
   
   print("--> model exported")
+  print("--> training done")
+  print("=======================================================================")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
     model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
+    print("--> training done")
+    print("=======================================================================")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
+#prediction
 print("--> classification done")
-prediction
+print("=======================================================================")
 
 #test prediction
 test_that('prediction test', {
@@ -575,8 +584,9 @@ test_that('prediction test', {
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
-print("--> AOA calculation done done")
-aoa
+#aoa
+print("--> aoa calculation done done")
+print("=======================================================================")
 
 #test aoa
 test_that('aoa test', {
@@ -645,6 +655,7 @@ test_that('sampling locations test', {
 })
 
 print("--> processing done")
+print("=======================================================================")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
 print(overall_time)
