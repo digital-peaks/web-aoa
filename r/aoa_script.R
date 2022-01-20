@@ -1,13 +1,12 @@
-#Packages
+options(warn = - 1) # Disable warning messages globally
 start_time <- Sys.time() #set start time 
 
-options(warn=-1) #supress warnings
-
-workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
-#workingDir <- "/app/jobs" #set working directory 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("--> working directory set")
 
+#Packages
 library(CAST) #CAST-Package for performing AOA
 library(caret) #caret-Package for performing training of machine-learning models
 library(sp) #sp-Package for handlig spatial datasets
@@ -28,9 +27,8 @@ test_that('working direktory test', {
   print("--> working directory passed testing")
 })
 
-#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-#job_name <- args[1] #name of the job
-job_name <- "demo" #for local tests
+args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+job_name <- args[1] #name of the job
 
 print(paste("--> Get job id from args:", job_name))
 
@@ -55,7 +53,7 @@ test_that('parameters readin test', {
   print("--> parameters passed testing")
 })
 
-print("--> parameters read")
+print("--> parameters ingested")
 
 if(parameters$use_pretrained_model == "false") { #checks if a pretrained model should be used
   
@@ -71,8 +69,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   
   #test samples
   test_that('samples readin test', {
-    expect_equal(parameters$samples_class %in% 	colnames(samplePolygons), TRUE)
-    expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
+    expect_equal(parameters$samples_class %in% colnames(samplePolygons), TRUE)
+    expect_equal(parameters$obj_id %in% colnames(samplePolygons), TRUE)
     print("--> samples passed testing")
   })
   
@@ -91,14 +89,14 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     test_that('pretrained model readin test', {
       expect_type(model, "list")
       expect_equal()
-      print("--> model passed testing")
+      print("--> model file passed testing")
     })
     
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
       print("--> pretrained model is not valid: it uses to many predictors")
-      stop()
+      stop() #stop processing
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
@@ -161,19 +159,17 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     resolution_training <- find_resolution(optimal_resolution_samples)
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     
-    print("--> output resolution for aoi set to ")
-    print(resolution_aoi)
-    print("--> output resolution for samples set to ")
-    print(resolution_training)
+    print("--> output resolution for aoi set to ", resolution_aoi)
+    print("--> output resolution for samples set to ", resolution_training)
   } else { 
     optimal_resolution_aoi <- sqrt(aoi_area/1000000) #function for calculating the optimal resolution for a 10000 pixel image
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
-    print("--> output resolution for aoi set to ")
-    print(resolution_aoi)
+    print("--> output resolution for aoi set to ", resolution_aoi)
   } 
 } else {
   resolution_training <- parameters$resolution
   resolution_aoi <- parameters$resolution
+  print("--> output resolution set to", parameters$resolution)
 }
   
   #test optimal resolution
@@ -193,7 +189,7 @@ response <- parameters$samples_class #Value to be used in classification
 print("--> response set")
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
 print("--> sampling strategy set")
-key <- parameters$obj_id #attribute to match samples with the 
+key <- parameters$obj_id #attribute to match samples with the response
 print("--> key attribute set")
 
 assets = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL") #bands to be retrieved via stac
@@ -208,8 +204,7 @@ test_that('stac init test', {
 })
 
 print("--> stac initialized")
-print("--> processing setup done")
-print("=======================================================================")
+print("--> basic processing setup done")
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>% #retrieve sentinel bands for area of interest
@@ -219,7 +214,7 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
               limit = 100) %>% #limit results to 100 datasets
   post_request() #post the request
 print("--> stac items for AOI retrieved")
-#items_aoi
+items_aoi
 
 #Test items
 test_that('items for aoi test', {
@@ -332,7 +327,6 @@ test_that('classification image test', {
 
 print("--> AOI raster cube created")
 print("--> classification image written")
-print("=======================================================================")
 
 #############Get Image-Data for sample Polygons
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used to trainig data must be retrieved
@@ -454,7 +448,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   
   print("--> AFT raster cube created")
   print("--> training image written")
-  print("=======================================================================")
+  print("--> raster data retrieval done")
 }
 
 #############Training
@@ -527,9 +521,9 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
 
   predictors <- names(training_stack) #set predictor variables
   print("--> predictors set")
-  
   response <- response #set response value
   print("--> response set")
+  
   if("random_forrest" %in% names(parameters)) { #if random forrest is selected
     print("--> random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
@@ -561,20 +555,15 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   })
   
   print("--> model exported")
-  print("--> training done")
-  print("=======================================================================")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
     model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
-    print("--> training done")
-    print("=======================================================================")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
-#prediction
 print("--> classification done")
-print("=======================================================================")
+prediction
 
 #test prediction
 test_that('prediction test', {
@@ -584,9 +573,8 @@ test_that('prediction test', {
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
+print("--> AOA calculation done done")
 #aoa
-print("--> aoa calculation done done")
-print("=======================================================================")
 
 #test aoa
 test_that('aoa test', {
@@ -655,7 +643,6 @@ test_that('sampling locations test', {
 })
 
 print("--> processing done")
-print("=======================================================================")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
 print(overall_time)

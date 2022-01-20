@@ -29,7 +29,7 @@ The job_param.json is structures as follows:
   "cloud_cover": 15,
   "start_timestamp": "2020-01-01",
   "end_timestamp": "2020-12-01",
-  "response": "class",
+  "samples_class": "class",
   "samples": "samplePolygons.gpkg",
   "aoi": "aoi.gpkg",
   "sampling_strategy": "regular",
