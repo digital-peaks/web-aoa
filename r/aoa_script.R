@@ -93,11 +93,13 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     model_bands <- 	colnames(model$ptype) #retrieve predictors from pretrained model
     available_bands = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL", "NDVI", "BSI", "BAEI") #avaiable predictors
     if(length(model$ptype) > length(available_bands)) { #if pretrained model employs too many predictors
+      print("Error!")
       print("--> pretrained model is not valid: it uses to many predictors")
       stop() #stop processing
     }
     for(i in 1:length(model_bands)){ #if pretrained model employs predictors not available in Sentinel-2A imagery
       if(model_bands[i]%in%available_bands == FALSE) { #if model contains predictors not present in the Sentinel-2A imagery
+        print("Error!")
         print("--> pretrained model employs predictors which are not part of Sentinel-2A imagery")
         stop() #stop processing
       }
@@ -108,6 +110,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     #print("Warning!")
   }, error = function(e) {
     print("Error!")
+    print("--> pretrained model not valid")
+    stop() #stop processing
   }, finally = {
   })
 }
