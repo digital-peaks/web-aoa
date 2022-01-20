@@ -43,6 +43,7 @@ tryCatch({
   parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job parameters
 }, warning = function(w) {
   print("Warning!")
+  print(w)
 }, error = function(e) {
   print("Error!")
   print("parameter file could not be read")
@@ -76,6 +77,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     samplePolygons <- st_read(samplePolygons_path, crs = 4326) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   }, warning = function(w) {
     print("Warning!")
+    print(w)
   }, error = function(e) {
     print("Error!")
     print("training file could not be read")
@@ -105,6 +107,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
       model <- readRDS(model_path) #ingest model.rds file
     }, warning = function(w) {
       print("Warning!")
+      print(w)
     }, error = function(e) {
       print("Error!")
       print("model file could not be read")
@@ -134,8 +137,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     }
     print("pretrained model valid")
   }, warning = function(w) {
-    print("")
-    #print("Warning!")
+    print("Warning!")
+    print(w)
   }, error = function(e) {
     print("Error!")
     print("pretrained model not valid")
@@ -155,6 +158,7 @@ tryCatch({
   aoi <- st_read(aoi_path, crs = 4326) #AOI (Dezimalgrad)
 }, warning = function(w) {
   print("Warning!")
+  print(w)
 }, error = function(e) {
   print("Error!")
   print("aoi file could not be read")
@@ -269,7 +273,8 @@ tryCatch({ #try to build a collection from items
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 }, warning = function(w) {
-  #print("Warning!")
+  print("Warning!")
+  print(w)
 }, error = function(e) {
   print("Error!")
   print("stac collection could not be created")
@@ -391,8 +396,8 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
   }, warning = function(w) {
-    print("")
-    #print("Warning!")
+    print("Warning!")
+    print(w)
   }, error = function(e) {
     print("Error!")
     print("stac collection could not be created")
