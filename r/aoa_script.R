@@ -73,7 +73,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   
   #test samples
   test_that('samples readin test', {
-    expect_equal(parameters$response %in% 	colnames(samplePolygons), TRUE)
+    expect_equal(parameters$samples_class %in% 	colnames(samplePolygons), TRUE)
     expect_equal(parameters$obj_id %in% 	colnames(samplePolygons), TRUE)
     print("--> samples passed testing")
   })
@@ -190,11 +190,11 @@ t0 <- parameters$start_timestamp #start timestamp
 t1 <- parameters$end_timestamp #end timestamp
 timeframe <- paste(t0, '/', t1, sep ="") #timeframe
 print("--> timeframe set")
-response <- parameters$response #Value to be used in classification
+response <- parameters$samples_class #Value to be used in classification
 print("--> response set")
 sampling_strategy <- parameters$sampling_strategy #regular, statified, nonaligned, clustered, hexagonal, Fibonacci
 print("--> sampling strategy set")
-key <- parameters$obj_id #attribute to match samples with the response
+key <- parameters$obj_id #attribute to match samples with the 
 print("--> key attribute set")
 
 assets = c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL") #bands to be retrieved via stac
