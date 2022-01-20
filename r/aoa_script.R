@@ -1,8 +1,8 @@
 #Packages
 start_time <- Sys.time() #set start time 
-
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
-workingDir <- "/app/jobs" #set working directory 
+options(warn=-1) #supress warnings
+workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("--> working directory set")
 
@@ -26,11 +26,9 @@ test_that('working direktory test', {
   print("--> working directory passed testing")
 })
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
-
-
-#job_name <- "demo" #for local tests
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+#job_name <- args[1] #name of the job
+job_name <- "demo" #for local tests
 
 print(paste("--> Get job id from args:", job_name))
 
@@ -208,7 +206,8 @@ test_that('stac init test', {
 })
 
 print("--> stac initialized")
-print("--> basic processing setup done")
+print("--> processing setup done")
+print("=======================================================================")
 
 #############Get Image-Data for AOI
 items_aoi <- stac %>% #retrieve sentinel bands for area of interest
@@ -218,7 +217,7 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
               limit = 100) %>% #limit results to 100 datasets
   post_request() #post the request
 print("--> stac items for AOI retrieved")
-items_aoi
+#items_aoi
 
 #Test items
 test_that('items for aoi test', {
@@ -328,6 +327,7 @@ test_that('classification image test', {
 
 print("--> AOI raster cube created")
 print("--> classification image written")
+print("=======================================================================")
 
 #############Get Image-Data for sample Polygons
 if(parameters$use_pretrained_model == "false") { #if a pretrained model is used to trainig data must be retrieved
@@ -338,7 +338,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                 limit = 100) %>% #set max results to 100 items
     post_request() #post request
   print("--> stac items for AFT retrieved")
-  items_poly
+  #items_poly
   
   #Test items
   test_that('items for training test', {
@@ -448,7 +448,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   
   print("--> AFT raster cube created")
   print("--> training image written")
-  print("--> raster data retrieval done")
+  print("=======================================================================")
 }
 
 #############Training
@@ -458,7 +458,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("--> training stac created")
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
   print("--> band names assigned")
-  training_stack 
+  #training_stack 
   
   #test training stac
   test_that('training stac test', {
@@ -483,7 +483,7 @@ classification_stack <- stack(classification_stack_path) #load classification im
 print("--> classification stac created")
 names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
 print("--> band names assigned")
-classification_stack 
+#classification_stack 
 
 #test classification stac
 test_that('classification stac test', {
@@ -551,15 +551,20 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   })
   
   print("--> model exported")
+  print("--> training done")
+  print("=======================================================================")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
     model <- readRDS(model_path) #read .rds from model path
     print("--> model imported")
+    print("--> training done")
+    print("=======================================================================")
 }
 
 prediction <- predict(classification_stack, model) #predict LU/LC
+#prediction
 print("--> classification done")
-prediction
+print("=======================================================================")
 
 #test prediction
 test_that('prediction test', {
@@ -568,8 +573,9 @@ test_that('prediction test', {
 })
 
 aoa<- aoa(classification_stack, model) #calculate aoa
-print("--> AOA calculation done done")
-aoa
+#aoa
+print("--> aoa calculation done done")
+print("=======================================================================")
 
 #test aoa
 test_that('aoa test', {
@@ -636,6 +642,7 @@ test_that('sampling locations test', {
 })
 
 print("--> processing done")
+print("=======================================================================")
 end_time <- Sys.time() #set end time 
 overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
 print(overall_time)
