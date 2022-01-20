@@ -39,7 +39,16 @@ job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
 print(paste("job path: ", job_path, sep=""))
 
 #Parameters
-parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job parameters
+tryCatch({
+  parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job parameters
+}, warning = function(w) {
+  print("Warning!")
+}, error = function(e) {
+  print("Error!")
+  print("parameter file could not be read")
+  stop() #stop processing
+}, finally = {
+})
 
 #test parameters
 test_that('parameters readin test', {
@@ -63,7 +72,16 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   })
   
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
-  samplePolygons <- st_read(samplePolygons_path, crs = 4326) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+  tryCatch({
+    samplePolygons <- st_read(samplePolygons_path, crs = 4326) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+  }, warning = function(w) {
+    print("Warning!")
+  }, error = function(e) {
+    print("Error!")
+    print("training file could not be read")
+    stop() #stop processing
+  }, finally = {
+  })
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
   
   #test samples
@@ -82,7 +100,17 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     })
     
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the model
-    model <- readRDS(model_path) #ingest model.rds file
+    
+    tryCatch({
+      model <- readRDS(model_path) #ingest model.rds file
+    }, warning = function(w) {
+      print("Warning!")
+    }, error = function(e) {
+      print("Error!")
+      print("model file could not be read")
+      stop() #stop processing
+    }, finally = {
+    })
     
     #test model
     test_that('pretrained model readin test', {
@@ -123,7 +151,16 @@ test_that('aoi file test', {
 })
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
-aoi <- st_read(aoi_path, crs = 4326) #AOI (Dezimalgrad)
+tryCatch({
+  aoi <- st_read(aoi_path, crs = 4326) #AOI (Dezimalgrad)
+}, warning = function(w) {
+  print("Warning!")
+}, error = function(e) {
+  print("Error!")
+  print("aoi file could not be read")
+  stop() #stop processing
+}, finally = {
+})
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
 print("aoi and aft set")
 
