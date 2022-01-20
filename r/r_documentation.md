@@ -57,10 +57,10 @@ The parameter-pair ```start_timestamp``` and ```end_timestamp``` define the time
 The parameter ```response``` is only needed when a new model is to be trained. It defines the attribute in the training data which describes the classes into which the Sentinel-2A images is segmented (the land-use / land-cover classes).
 
 The parameter ```samples``` is only need when a new model is to be trained. It contains the name of the .geojson or .gpkg
-file with the training datasets. These are commonly polygonal but points could be used as well. Sample datasets must conform to the WGS coodinate system (EPSG 4326).
+file with the training datasets. These are commonly polygonal but points could be used as well. Sample datasets must conform to the WGS coordinate system (EPSG 4326).
 
 The parameter ```aoi``` contains the name of the .geojson or .gpkg
-file with the area of interest. AOI dataset must conform to the WGS coodinate system (EPSG 4326).
+file with the area of interest. AOI dataset must conform to the WGS coordinate system (EPSG 4326).
 
 The parameter ```sampling_strategy``` defines which sampling strategy should be used to make suggestions for potential locations for which additional training datasets could be retrieved in order to optimize the results. Possible value are: ```random```, ```regular```, ```stratified```, ```nonaligned```, ```hexogonal```, ```clustered```, ```Fibonacci```
 
