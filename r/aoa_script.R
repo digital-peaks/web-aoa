@@ -1,8 +1,8 @@
 options(warn = - 1) # Disable warning messages globally
 start_time <- Sys.time() #set start time 
 
-#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
-workingDir <- "/app/jobs" #set working directory 
+workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+#workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("--> working directory set")
 
@@ -27,17 +27,16 @@ test_that('working direktory test', {
   print("--> working directory passed testing")
 })
 
-args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- args[1] #name of the job
-
-print(paste("--> Get job id from args:", job_name))
+#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+job_name <- "demo" #args[1] #name of the job
+print(paste("--> job name: ", job_name))
 
 #Result JSON
 result <- vector(mode="list", length=3) #initialize result JSON
 
 #Path to Job
 job_path <- paste(workingDir, job_name, sep="/") #path to the job folder
-print(paste("--> Job path: ", job_path, sep=""))
+print(paste("--> job path: ", job_path, sep=""))
 
 #Parameters
 parameters <- fromJSON(file = paste(job_path, "/", "job_param.json", sep="")) #read in job parameters
@@ -73,8 +72,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     expect_equal(parameters$obj_id %in% colnames(samplePolygons), TRUE)
     print("--> samples passed testing")
   })
-  
   print("--> new model will be trained")
+  
 } else {
   tryCatch({ 
     test_that('model file test', {
@@ -83,12 +82,11 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     })
     
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the model
-    model <- readRDS(model_path) #ingest .rds file
+    model <- readRDS(model_path) #ingest model.rds file
     
     #test model
     test_that('pretrained model readin test', {
       expect_type(model, "list")
-      expect_equal()
       print("--> model file passed testing")
     })
     
@@ -106,7 +104,8 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
     }
     print("--> pretrained model valid")
   }, warning = function(w) {
-    print("Warning!")
+    print("")
+    #print("Warning!")
   }, error = function(e) {
     print("Error!")
   }, finally = {
@@ -159,17 +158,17 @@ if(parameters$use_lookup == "true") { #if look-table should be used to find opti
     resolution_training <- find_resolution(optimal_resolution_samples)
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
     
-    print("--> output resolution for aoi set to ", resolution_aoi)
-    print("--> output resolution for samples set to ", resolution_training)
+    print(paste("--> output resolution for aoi set to", resolution_aoi))
+    print(paste("--> output resolution for samples set to", resolution_training))
   } else { 
     optimal_resolution_aoi <- sqrt(aoi_area/1000000) #function for calculating the optimal resolution for a 10000 pixel image
     resolution_aoi <- find_resolution(optimal_resolution_aoi)
-    print("--> output resolution for aoi set to ", resolution_aoi)
+    print(paste("--> output resolution for aoi set to", resolution_aoi))
   } 
 } else {
   resolution_training <- parameters$resolution
   resolution_aoi <- parameters$resolution
-  print("--> output resolution set to", parameters$resolution)
+  print(paste("--> output resolution set to", parameters$resolution))
 }
   
   #test optimal resolution
@@ -202,7 +201,6 @@ test_that('stac init test', {
   expect_equal(stac$base_url == "https://earth-search.aws.element84.com/v0", TRUE)
   print("--> stac initialisation passed testing")
 })
-
 print("--> stac initialized")
 print("--> basic processing setup done")
 
@@ -214,7 +212,7 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
               limit = 100) %>% #limit results to 100 datasets
   post_request() #post the request
 print("--> stac items for AOI retrieved")
-items_aoi
+#items_aoi
 
 #Test items
 test_that('items for aoi test', {
@@ -229,9 +227,10 @@ tryCatch({ #try to build a collection from items
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, 
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
 }, warning = function(w) {
-  print("Warning!")
+  #print("Warning!")
 }, error = function(e) {
   print("Error!")
+  print("--> stac collection could not be created")
 }, finally = {
   collection_aoi =  stac_image_collection(items_aoi$features, asset_names = assets, #try to build a collection from items
                                           property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
@@ -252,8 +251,9 @@ test_that('target crs test', {
   print("--> crs passed testing")
 })
 
-print("--> target crs retrieved")
 targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
+print(paste("--> target crs set to:", targetString))
+
 aoi_transformed <- st_transform(aoi, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
 print("--> AOI tranformed to target crs")
 aoi_bbox_tranformed <- st_bbox(aoi_transformed, crs = as.numeric(targetSystem)) #derive BBox of transformed AOI
@@ -278,7 +278,6 @@ test_that('cube view test', {
   expect_equal(cube_view_aoi$resampling == "average", TRUE)
   expect_equal(cube_view_aoi$time$t0 == t0 && cube_view_aoi$time$t1 == t1, TRUE)
 })
-
 ("--> AOI cube view created")
 
 S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
@@ -313,8 +312,9 @@ cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
     prefix = basename(classification_image_name), #set filename
     overviews = FALSE, #build no overviews
     COG = TRUE, #write a cloud optimzed image
-    rsmpl_overview = "nearest" #set resamplling method
+    rsmpl_overview = "nearest" #set resampling method
   )
+print("--> AOI raster cube created")
 filename <- paste(job_path, "/", "classification_image", t0, ".tif", sep="") #set filename
 file <- filename #find written file
 file.rename(filename, paste(job_path, "/", "classification_image.tif", sep="")) #rename written file
@@ -324,8 +324,6 @@ test_that('classification image test', {
   expect_equal(file.exists(paste(job_path, "/", "classification_image", ".tif", sep="")), TRUE)
   print("--> classification image passed testing")
 })
-
-print("--> AOI raster cube created")
 print("--> classification image written")
 
 #############Get Image-Data for sample Polygons
@@ -351,9 +349,11 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
   }, warning = function(w) {
-    print("Warning!")
+    print("")
+    #print("Warning!")
   }, error = function(e) {
     print("Error!")
+    print("--> stac collection could not be created")
   }, finally = {
     collection_poly = stac_image_collection(items_poly$features, asset_names = assets, 
                                             property_filter = function(x) {x[["eo:cloud_cover"]] < cloud_cover})
@@ -362,13 +362,10 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     test_that('collection for training test', {
       expect_type(collection_poly, "externalptr")
     })
-    
     print("--> image collection for AFT created")
   })
   
   targetSystem <- toString(items_poly$features[[1]]$properties$`proj:epsg`) #read EPSG-Code of Sentinel-Images
-  print("--> target crs retrieved")
-  targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
   
   #Test target crs
   test_that('target crs test', {
@@ -376,6 +373,9 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     expect_equal(nchar(targetSystem) == 4 || nchar(targetSystem) == 5, TRUE)
     print("--> crs passed testing")
   })
+  
+  targetString <- paste('EPSG:', targetSystem) #transform EPSG-Code to String
+  print(paste("--> target crs set to:", targetString))
   
   samplePolygons_transformed <- st_transform(samplePolygons, as.numeric(targetSystem)) #transform AOI to Sentinel-Image EPSG
   print("--> AFT tranformed to target crs")
@@ -392,8 +392,6 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                                                                 dt = "P1D", #intervall in which images are taken from each time slice
                                                                 aggregation = "median", #set aggregation method
                                                                 resampling = "average") #set resampling 
-  print("--> AFT cube view created")
-  
   #Test cube view
   test_that('cube view test', {
     expect_type(cube_view_poly, "list")
@@ -401,6 +399,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
     expect_equal(cube_view_poly$resampling == "average", TRUE)
     expect_equal(cube_view_poly$time$t0 == t0 && cube_view_aoi$time$t1 == t1, TRUE)
   })
+  print("--> AFT cube view created")
   
   S2.mask = image_mask("SCL", values=c(3,8,9)) #clouds and cloud shadows
   print("--> cloud mask created")
@@ -437,6 +436,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
       COG = TRUE, #write a cloud optimzed image
       rsmpl_overview = "nearest" #set seasmpling method
     )
+  print("--> AFT raster cube created")
   filename <- paste(job_path, "/", "training_image", t0, ".tif", sep="") #set filename
   file <- filename #find written file
   file.rename(filename, paste(job_path, "/", "training_image.tif", sep="")) #rename written file
@@ -445,10 +445,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   test_that('classification image test', {
     expect_equal(file.exists(paste(job_path, "/", "training_image", ".tif", sep="")), TRUE)
   })
-  
-  print("--> AFT raster cube created")
   print("--> training image written")
-  print("--> raster data retrieval done")
 }
 
 #############Training
@@ -531,17 +528,18 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
                     importance=TRUE, #store importance of predictors
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
-    print("--> model trained")
-    model
+    print("--> random forrest trained")
+    #model
   } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("--> support vector machine will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
                    method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c,.sigma= parameters$support_vector_machine$sigma), #with support vector machine
                    importance=TRUE, #store importance of predictors
                    trControl=trainControl(method="cv", number=parameters$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
-    print("--> model trained")
-    model
+    print("--> support vector machine trained")
+    #model
   } else {
+    print("Error!")
     print("--> No machine learning procedure was provided")
     stop() # Stop script
   }
@@ -553,7 +551,6 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
     expect_equal(file.exists(paste(job_path, "/", "model", ".rds", sep="")), TRUE)
     print("--> model file passed testing")
   })
-  
   print("--> model exported")
   } else { #use pretrained model if one is provided
     model_path <- paste(job_path, "/", parameters$model, sep ="") #path to the samples 
@@ -563,7 +560,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
 
 prediction <- predict(classification_stack, model) #predict LU/LC
 print("--> classification done")
-prediction
+#prediction
 
 #test prediction
 test_that('prediction test', {
@@ -583,7 +580,6 @@ test_that('aoa test', {
   expect_equal(aoa@layers[[2]]@data@names == "AOA", TRUE)
   print("--> aoa passed testing")
 })
-
 print("--> geostatistical processing done")
 
 #############Export
@@ -592,12 +588,14 @@ di_path <- paste(job_path, "/", "aoa_di", sep="") #set dissimilarity index path
 prediction_path <- paste(job_path, "/", "pred", sep="") #set prediction path
 geojson_path <- paste(job_path, "/", "suggestion.geojson", sep="") #set geojon path for suggested sampling locations
 result_path <- paste(job_path, "/", "result.json", sep="") #set result path for result JSON
+
 writeRaster(aoa$AOA, aoa_path, format = 'GTiff', options=c('TFW=YES')) #export aoa
 print("--> aoa image written")
 writeRaster(aoa$DI, di_path, format = 'GTiff',  options=c('TFW=YES')) #export dissimilarity index
 print("--> di image written")
 writeRaster(prediction, prediction_path, format = 'GTiff', options=c('TFW=YES')) #export prediction
 print("--> prediction image written")
+
 result[[1]] <- model$levels #store classes
 result[[2]] <- model$results$Accuracy #store accuracy
 result[[3]] <- model$results$Kappa #store kappa
@@ -617,7 +615,7 @@ test_that('output test', {
 aoa_source_path <- paste(job_path, "/aoa_aoa.tif", sep="") #path to aoa raster
 aoa_raster <- stack(aoa_source_path) #load training image as stack
 mask <- mask(aoa_raster, aoa_raster, maskvalue=1) #create mask from aoa where model is not applicable
-print("--> AOA mask created")
+print("--> aoa mask created")
 points <- spsample(rasterToPolygons(mask), n = 50, sampling_strategy) #create sample points on mask
 print("--> suggested locations for extra training polygons created")
 
@@ -644,5 +642,4 @@ test_that('sampling locations test', {
 
 print("--> processing done")
 end_time <- Sys.time() #set end time 
-overall_time <- paste("--> processing time: ", (end_time - start_time), " Minutes", sep="") #culculate overall processing time
-print(overall_time)
+print(paste("--> processing time: ", trunc((end_time - start_time)), " Minutes", sep=""))
