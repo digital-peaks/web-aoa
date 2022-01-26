@@ -23,7 +23,7 @@ print("libraries imported")
 #test working direktory
 test_that('working direktory test', {
   expect_type(workingDir, "character")
-  expect_equal(workingDir, "~/GitHub/web-aoa/r")
+  expect_equal(workingDir, "/app/jobs")
   print("working directory passed testing")
 })
 
