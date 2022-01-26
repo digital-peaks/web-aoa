@@ -1,8 +1,8 @@
 options(warn = - 1) # Disable warning messages globally
 start_time <- Sys.time() #set start time 
 
-workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
-#workingDir <- "/app/jobs" #set working directory 
+#workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
+workingDir <- "/app/jobs" #set working directory 
 setwd(workingDir) #needed for local tests
 print("working directory set")
 
@@ -23,12 +23,13 @@ print("libraries imported")
 #test working direktory
 test_that('working direktory test', {
   expect_type(workingDir, "character")
-  expect_equal(workingDir, "/app/jobs")
+  expect_equal(workingDir, "~/GitHub/web-aoa/r")
   print("working directory passed testing")
 })
 
-#args = commandArgs(trailingOnly=TRUE) #read passed arguments 
-job_name <- "demo" #args[1] #name of the job
+args = commandArgs(trailingOnly=TRUE) #read passed arguments 
+job_name <- args[1] #name of the job
+#job_name <- "demo" #name of the job
 print(paste("job name: ", job_name))
 
 #Result JSON
@@ -74,7 +75,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   tryCatch({
-    samplePolygons <- st_read(samplePolygons_path, crs = 4326) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+    samplePolygons <- st_read(samplePolygons_path) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
   }, warning = function(w) {
     print("Warning!")
     print(w)
@@ -85,11 +86,11 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   }, finally = {
   })
   samplePolygon_bbox <- st_bbox(samplePolygons, crs = 4326) #(Dezimalgrad)
-  
   #test samples
   test_that('samples readin test', {
     expect_equal(parameters$samples_class %in% colnames(samplePolygons), TRUE)
     expect_equal(parameters$obj_id %in% colnames(samplePolygons), TRUE)
+    expect_equal(st_crs(samplePolygons)$input, "WGS 84")
     print("samples passed testing")
   })
   print("new model will be trained")
@@ -155,7 +156,7 @@ test_that('aoi file test', {
 
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 tryCatch({
-  aoi <- st_read(aoi_path, crs = 4326) #AOI (Dezimalgrad)
+  aoi <- st_read(aoi_path) #AOI (Dezimalgrad)
 }, warning = function(w) {
   print("Warning!")
   print(w)
@@ -166,7 +167,11 @@ tryCatch({
 }, finally = {
 })
 aoi_bbox <- st_bbox(aoi, crs = 4326) #BBox of AOI (Dezimalgrad)
-print("aoi and aft set")
+#test samples
+test_that('aoi readin test', {
+  expect_equal(st_crs(aoi)$input, "WGS 84")
+  print("aoi passed testing")
+})
 
 find_resolution <- function(resolution) {
   if(resolution <= 10) {
@@ -573,7 +578,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   if("random_forrest" %in% names(parameters)) { #if random forrest is selected
     print("random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                    method="rf", tuneGrid=data.frame("mtry"= length(predictors)/2), #with random forrest 
+                    method="rf", tuneGrid=data.frame("mtry"= 12), #with random forrest 
                     importance=TRUE, #store importance of predictors
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
@@ -610,6 +615,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
     print("###############################################")
 }
 
+print("classification started")
 prediction <- predict(classification_stack, model) #predict LU/LC
 print("classification done")
 #prediction
@@ -621,8 +627,9 @@ test_that('prediction test', {
   print("prediction passed testing")
 })
 
+print("aoa calculation started")
 aoa<- aoa(classification_stack, model) #calculate aoa
-print("aoa calculation done done")
+print("aoa calculation done")
 #aoa
 
 #test aoa
@@ -680,10 +687,9 @@ points_dataframe_source <- as.data.frame(points_dataframe) #convert coords to da
 xy <- points_dataframe[,c(1,2)] #get fields
 
 spatial_points_dataframe <- SpatialPointsDataFrame(coords = xy, data = points_dataframe_source, #create spatial_points_dataframe
-                               proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+                               proj4string = proj_string)
 
 spatial_points_dataframe_converted <- st_as_sf(spatial_points_dataframe) #convert spatial_points_dataframe
-st_crs(spatial_points_dataframe_converted) = as.numeric(targetSystem) #set target system as crs
 spatial_points_dataframe_transformed <- st_transform(spatial_points_dataframe_converted, as.numeric("4326")) #transform AOI to Sentinel-Image EPSG
 st_write(spatial_points_dataframe_transformed, geojson_path, driver = "GeoJSON") #export as GeoJSON
 print("suggested locations for extra training polygons written")
@@ -698,3 +704,4 @@ print("processing done")
 print("###############################################")
 end_time <- Sys.time() #set end time 
 print(paste("processing time: ", trunc((end_time - start_time)), " Minutes", sep=""))
+
