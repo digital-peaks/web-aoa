@@ -59,7 +59,7 @@ test_that('parameters readin test', {
   expect_equal(parameters$use_pretrained_model == "true" || parameters$use_pretrained_model == "false", TRUE)
   expect_equal(parameters$cloud_cover >= 0 || parameters$cloud_cover <= 100, TRUE)
   expect_equal(parameters$resolution > 0, TRUE)
-  expect_equal(parameters$sampling_strategy %in% c("regular", "stratified", "nonaligned", "clusterd", "Fibonacci"), TRUE)
+  expect_equal(parameters$sampling_strategy %in% c("regular", "stratified", "nonaligned", "clusterd", "Fibonacci", "random"), TRUE)
   print("parameters passed testing")
 })
 
