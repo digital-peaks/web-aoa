@@ -1,4 +1,4 @@
-options(warn = 0) # Disable warning messages globally
+options(warn = -1) # Disable warning messages globally
 start_time <- Sys.time() #set start time 
 
 #workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
