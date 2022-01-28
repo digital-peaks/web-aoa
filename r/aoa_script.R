@@ -1,4 +1,4 @@
-options(warn = - 1) # Disable warning messages globally
+options(warn = 0) # Disable warning messages globally
 start_time <- Sys.time() #set start time 
 
 #workingDir <- "~/GitHub/web-aoa/r" #set working directory for local tests
@@ -76,6 +76,7 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   samplePolygons_path <- paste(job_path, "/", parameters$samples, sep ="") #path to the samples
   tryCatch({
     samplePolygons <- st_read(samplePolygons_path) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
+    print(samplePolygons)
   }, warning = function(w) {
     print("Warning!")
     print(w)
@@ -157,6 +158,7 @@ test_that('aoi file test', {
 aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 tryCatch({
   aoi <- st_read(aoi_path) #AOI (Dezimalgrad)
+  print(aoi)
 }, warning = function(w) {
   print("Warning!")
   print(w)
@@ -263,7 +265,7 @@ items_aoi <- stac %>% #retrieve sentinel bands for area of interest
               limit = 100) %>% #limit results to 100 datasets
   post_request() #post the request
 print("stac items for AOI retrieved")
-#items_aoi
+print(items_aoi)
 
 #Test items
 test_that('items for aoi test', {
@@ -387,7 +389,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
                 limit = 100) %>% #set max results to 100 items
     post_request() #post request
   print("stac items for AFT retrieved")
-  #items_poly
+  print(items_poly)
   
   #Test items
   test_that('items for training test', {
@@ -460,7 +462,6 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("gdalcubes threads set to 4")
   
   training_image_name <- paste('training_image', sep ="") 
-  
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
     select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
     apply_pixel("(B08-B04)/(B08+B04)", "NDVI", keep_bands = TRUE) %>% #NDVI - Normalized Difference Vegetation Index
@@ -509,7 +510,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   print("training stac created")
   names(training_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
   print("band names assigned")
-  #training_stack 
+  print(training_stack) 
   
   #test training stac
   test_that('training stac test', {
@@ -535,7 +536,7 @@ classification_stack <- stack(classification_stack_path) #load classification im
 print("classification stac created")
 names(classification_stack)<-c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","NDVI", "BSI", "BAEI") #rename bands
 print("band names assigned")
-#classification_stack 
+print(classification_stack) 
 
 #test classification stac
 test_that('classification stac test', {
@@ -556,8 +557,9 @@ test_that('classification stac test', {
 })
 
 if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
+  print("training data extraction from raster started")
   training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
-  print("training data extracted from raster")
+  print("training data extraction from raster done")
   training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
   print("response assigned to training data")
   
@@ -573,26 +575,23 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   predictors <- names(training_stack) #set predictor variables
   print("predictors set")
   response <- response #set response value
+  names(training_data)[names(training_data)==response] <- "class"
   print("response set")
-  
   if("random_forrest" %in% names(parameters)) { #if random forrest is selected
     print("random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
                     method="rf", tuneGrid=data.frame("mtry"= 12), #with random forrest 
-                    importance=TRUE, #store importance of predictors
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("random forrest trained")
-
-    #model
+    print(model)
   } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("support vector machine will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c,.sigma= parameters$support_vector_machine$sigma), #with support vector machine
-                   importance=TRUE, #store importance of predictors
+                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c, .sigma=parameters$support_vector_machine$sigma), #with support vector machine
                    trControl=trainControl(method="cv", number=parameters$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
     print("support vector machine trained")
-    #model
+    print(model)
   } else {
     print("Error!")
     print("no machine learning procedure was provided")
@@ -618,7 +617,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
 print("classification started")
 prediction <- predict(classification_stack, model) #predict LU/LC
 print("classification done")
-#prediction
+print(prediction)
 
 #test prediction
 test_that('prediction test', {
@@ -630,7 +629,7 @@ test_that('prediction test', {
 print("aoa calculation started")
 aoa<- aoa(classification_stack, model) #calculate aoa
 print("aoa calculation done")
-#aoa
+print(aoa)
 
 #test aoa
 test_that('aoa test', {
