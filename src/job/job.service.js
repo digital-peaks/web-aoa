@@ -101,7 +101,7 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
     }
   }
 
-  if (!body.random_forrest && !body.support_vector_machine) {
+  if (!modelFile && !body.random_forrest && !body.support_vector_machine) {
     throw new BadRequestException("No machine learning procedure specified");
   }
 
