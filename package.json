@@ -76,6 +76,11 @@
   },
   "jest": {
     "rootDir": "src",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "coverageDirectory": "../coverage_api",
+    "coverageReporters": [
+      "json",
+      "lcov"
+    ]
   }
 }
