@@ -46,7 +46,7 @@ A job gets a unique id assigned to it which is stored in the ```name``` paramete
 
 The boolean parameter ```use_lookup``` controlls the usage of a lookup-table for the resolution of the output raster datasets. If it is set to ```false``` the user defined value of the parameter ```resolution``` is used. If it is set to ```true``` the resolution is set by the script itself based on the following formula:
 
-![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/resolution_formula.PNG)
+![foxdemo](https://github.com/digital-peaks/web-aoa/blob/main/docs/documentation_gfx/indices.PNG)
 
 If the resolution is determined by the script, the resolution is set to a value that each image contains approximately 10000 pixels to ensure fast processing.
 
@@ -99,7 +99,7 @@ The retrieval of Sentinel-2A imagery is performed using a spatio temporal asset 
 # Pre-processing
 Spatio-temporal datacubes are used to preprocess the Sentel-2A imagery. A cube view object defines the spatial and temporal extends, sets the output resolution and the output crs. From this cube view object a raster cube can be created. All images in the collection are processed in this datacube. Bands ```B01```, ```B02```, ```B03```, ```B04```, ```B05```, ```B06```, ```B07```, ```B08```, ```B08A```, ```B09```, ```B11``` and ```B12``` are selected from each Sentinel-2A image in the time series. Additionally some Indices are calculated with the aim to enhance the land-use/land-cover classification. The indices chosen are: the Normalized Difference Vegetation Index (NDVI), the Bare SOil Index (BSI) and the Build-up Area Extraction Index (BAEI) given by:
 
-![foxdemo](https://github.com/digital-peaks/web-aoa/blob/r-documentation/r/documentation_gfx/indices.PNG)
+![foxdemo](https://github.com/digital-peaks/web-aoa/blob/main/docs/documentation_gfx/indices.PNG)
 
 The model can employ the Sentinal-2A bands and the mentioned indices as predictors. 
 The time series now needs to be reduces to only one image. The median method is chosen to reduce the time series since the median is robust toward outliers. This is done in order to reduce the effect of remaining cloud coverage. Finally, the resulting, cloud-free image is written as a cloud-optimized .tif to the job folder. This workflow is always performed for the area of interest. If a new model is trained the process of image retrieval and preprocessing is repeated for the area in which the training datasets are located.
