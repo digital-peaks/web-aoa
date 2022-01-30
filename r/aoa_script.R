@@ -77,6 +77,13 @@ if(parameters$use_pretrained_model == "false") { #checks if a pretrained model s
   tryCatch({
     samplePolygons <- st_read(samplePolygons_path) #read_sf(samplePolygons_path, crs = 4326) #sample Polygons (Dezimalgrad)
     print(samplePolygons)
+    if(st_crs(samplePolygons)$input == "WGS 84") { #check for wgs 84 as crs
+      print("crs of samples is WGS 84")
+    } else {
+      print("ERROR!")
+      print("crs of samples is not WGS 84") 
+      stop() #stop processing
+    }
   }, warning = function(w) {
     print("Warning!")
     print(w)
@@ -159,6 +166,13 @@ aoi_path <- paste(job_path, "/", parameters$aoi, sep ="") #path to the aoi
 tryCatch({
   aoi <- st_read(aoi_path) #AOI (Dezimalgrad)
   print(aoi)
+  if(st_crs(aoi)$input == "WGS 84") { #check for wgs 84 as crs
+    print("crs of aoi is WGS 84")
+  } else {
+    print("ERROR!")
+    print("crs of aoi is not WGS 84") 
+    stop() #stop processing
+  }
 }, warning = function(w) {
   print("Warning!")
   print(w)
