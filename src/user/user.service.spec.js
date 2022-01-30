@@ -7,7 +7,7 @@ const {
   NotFoundException,
 } = require("../utils/exceptions");
 
-describe("User", () => {
+describe("UserService", () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
