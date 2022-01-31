@@ -16,26 +16,52 @@ components:
           type: string
         name:
           type: string
+          description: Job name.
         use_lookup:
           type: boolean
+          description: >
+            Controlls the usage of a lookup-table for the resolution of the output raster datasets.
+            If it is set to `false` the user defined value of the parameter `resolution` is used.
+            If it is set to `true` the resolution is set by the script itself based on the following formula: 
+            https://github.com/digital-peaks/web-aoa/blob/main/docs/documentation_gfx/resolution_formula.PNG
         resolution:
           type: number
+          description: >
+            Sentinel-2A resolution in meters.
+            Common values: `10`, `20`, `50`, `100`, `200`, `400`
         cloud_cover:
           type: number
+          description: >
+            Determines which percentage of the Sentinal-2A images is allowed to be covered by clouds.
+            Common value: `15`
         start_timestamp:
           type: date-time
+          description: Start of the timeframe for the Sentinel-2A data which are used.
         end_timestamp:
           type: date-time
+          description: End of the timeframe for the Sentinel-2A data which are used.
         sampling_strategy:
           type: string
+          description: >
+            Defines which sampling strategy should be used to make suggestions for potential
+            locations for which additional training datasets could be retrieved in order to optimize the results.
+            Possible values are: `random`, `regular`, `stratified`, `nonaligned`, `hexogonal`, `clustered`, `Fibonacci`
         samples_class:
           type: string
+          description: >
+            Field which classifies the polygons.
+            Possible value: `class`
         obj_id:
           type: string
+          description: >
+            Describes the attribute that represent the key of the sample polygons.
+            Possible value: `PID`
         use_pretrained_model:
           type: boolean
+          description: If this field is set to `true` a model file is required.
         random_forrest:
           type: object
+          description: Set this object to use random forest with some parameters.
           properties:
             n_tree:
               type: number
@@ -43,6 +69,7 @@ components:
               type: number
         support_vector_machine:
           type: object
+          description: Set this object to use support vector machine with some parameters.
           properties:
             sigma:
               type: number
@@ -52,6 +79,7 @@ components:
               type: number
         area_of_interest:
           type: object
+          description: Contains a GeoJSON with a polygon (EPSG 4326).
         user_id:
           type: string
         created:
@@ -62,6 +90,7 @@ components:
         status:
           type: string
           enum: [running, error, success]
+          description: Indicates the status of the job.
       example:
         id: "61b5dac80ba4add8236ed484"
         name: "Job name"
