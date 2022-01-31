@@ -28,6 +28,10 @@ components:
           type: date-time
         sampling_strategy:
           type: string
+        samples_class:
+          type: string
+        obj_id:
+          type: string
         use_pretrained_model:
           type: boolean
         random_forrest:
@@ -68,6 +72,8 @@ components:
         end_timestamp: "2020-06-01T00:00:00.000Z"
         sampling_strategy: "regular"
         use_pretrained_model: false
+        samples_class: "class"
+        obj_id: "PID"
         user_id: "61b5dac80ba4add9236dc231"
         created: "2021-12-12T11:19:36.420Z"
         finished: null

@@ -291,6 +291,49 @@ describe("JobService", () => {
       expect(fs.promises.writeFile).toHaveBeenCalledTimes(3);
     });
 
+    it("should create a job with different samples_class and obj_id", async () => {
+      const newJobModel = { ...newJob, samples_class: "type", obj_id: "id" };
+
+      Job.create = jest.fn().mockResolvedValue({
+        id: newJobId,
+        user_id: sessionUser.id,
+        ...newJobModel,
+        toJSON: jest.fn().mockReturnValue(newJobModel),
+      });
+
+      await JobService.createJob(
+        JSON.stringify(newJobModel),
+        { samples: [jobFileSamples] },
+        sessionUser
+      );
+
+      // Check job_params file
+      expect(fs.promises.writeFile.mock.calls[0]).toEqual([
+        expect.stringContaining(`/${newJobId}/job_param.json`),
+        JSON.stringify(
+          {
+            name: "Job name",
+            resolution: 10,
+            cloud_cover: 15,
+            start_timestamp: "2020-01-01",
+            end_timestamp: "2020-06-01",
+            samples_class: "type",
+            sampling_strategy: "regular",
+            obj_id: "id",
+            model: "model.rds",
+            samples: "samples.geojson",
+            aoi: "aoi.geojson",
+            use_lookup: "false",
+            use_pretrained_model: "false",
+            random_forrest: { n_tree: 800, cross_validation_folds: 5 },
+          },
+          null,
+          2
+        ),
+        "utf8",
+      ]);
+    });
+
     it("should check samples file MIME-Type and size", async () => {
       await expect(
         JobService.createJob(
@@ -355,13 +398,13 @@ describe("JobService", () => {
       fs.promises.writeFile = jest
         .fn()
         .mockRejectedValue(new Error("Something went wrong..."));
-      Job.deleteOne = jest.fn().mockResolvedValue({});
+      const deleteOneSpy = jest.spyOn(Job, "deleteOne").mockResolvedValue({});
 
       await expect(
         JobService.createJob(JSON.stringify(newJob), {}, sessionUser)
       ).rejects.toThrowError(InternalServerErrorException);
 
-      expect(Job.deleteOne).toHaveBeenCalledTimes(1);
+      expect(deleteOneSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

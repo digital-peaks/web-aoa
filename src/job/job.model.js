@@ -36,6 +36,9 @@ const jobSchema = new mongoose.Schema({
   samples_class: {
     type: String,
   },
+  obj_id: {
+    type: String,
+  },
   sampling_strategy: {
     type: String,
     required: true,
