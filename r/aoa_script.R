@@ -599,7 +599,7 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
     model <- train(training_data[,predictors], training_data$class, #train model
                     method="rf",  #random forrest
                     na.action = na.omit, #omit missing values
-                    tuneGrid=data.frame("mtry"= 15), #with random forrest 
+                    tuneGrid=data.frame("mtry"= 7), #with random forrest 
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("random forrest trained")
