@@ -572,10 +572,12 @@ test_that('classification stac test', {
 
 if(parameters$use_pretrained_model == "false") { #train model ig no pretrained model is provided
   print("training data extraction from raster started")
-  training_data <- extract(training_stack, samplePolygons, df='TRUE') #extract training data from image via polygons
+  training_data <- extract(training_stack, samplePolygons_transformed, df='TRUE') #extract training data from image via polygons
   print("training data extraction from raster done")
-  training_data <- merge(training_data, samplePolygons, by.x="ID", by.y=key) #enrich traing data with corresponding classes
+  training_data <- merge(training_data, samplePolygons_transformed, by.x="ID", by.y=key) #enrich traing data with corresponding classes
   print("response assigned to training data")
+  training_data <- na.omit(training_data)
+  print("training data cleaned")
   
   #test training data
   test_that('training data test', {
@@ -587,15 +589,17 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   })
 
   predictors <- names(training_stack) #set predictor variables
+  print(predictors)
   print("predictors set")
-  response <- response #set response value
   names(training_data)[names(training_data)==response] <- "class"
   print("response set")
 
   if("random_forrest" %in% names(parameters)) { #if random forrest is selected
     print("random forrest will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                    method="rf", tuneGrid=data.frame("mtry"= 12), #with random forrest 
+                    method="rf",  #random forrest
+                    na.action = na.omit, #omit missing values
+                    tuneGrid=data.frame("mtry"= 15), #with random forrest 
                     ntree=parameters$random_forrest$n_tree, #max number of trees
                     trControl=trainControl(method="cv", number=parameters$random_forrest$cross_validation_folds)) #perform cross validation to assess model
     print("random forrest trained")
@@ -603,7 +607,9 @@ if(parameters$use_pretrained_model == "false") { #train model ig no pretrained m
   } else if("support_vector_machine" %in% names(parameters)) { #if support vector machine is selected
     print("support vector machine will be trained")
     model <- train(training_data[,predictors], training_data$class, #train model
-                   method="svmRadial", tuneGrid=expand.grid(.C = parameters$support_vector_machine$c, .sigma=parameters$support_vector_machine$sigma), #with support vector machine
+                   method="svmRadial", #support vector machine
+                   na.action = na.omit, #omit missing values
+                   tuneGrid=expand.grid(.C = parameters$support_vector_machine$c, .sigma=parameters$support_vector_machine$sigma), #with support vector machine
                    trControl=trainControl(method="cv", number=parameters$support_vector_machine$cross_validation_folds)) #perform cross validation to assess model
     print("support vector machine trained")
     print(model)
