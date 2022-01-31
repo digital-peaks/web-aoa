@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon --ignore r/ --ignore jobs/ src/index.js",
     "start:prod": "node src/index.js",
-    "test:unit": "jest src",
+    "test:unit": "jest",
     "lint": "eslint src"
   },
   "dependencies": {
@@ -73,5 +73,10 @@
         }
       ]
     }
+  },
+  "jest": {
+    "rootDir": "src",
+    "testEnvironment": "node",
+    "coverageDirectory": "../coverage_api"
   }
 }

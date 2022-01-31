@@ -142,8 +142,8 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
   } catch (err) {
     logger.error(err);
     // CLEANUP:
-    await deleteJob(job.id);
-    const serverErr = InternalServerErrorException(
+    await deleteJob(job.id, user);
+    const serverErr = new InternalServerErrorException(
       "Unable to create job folder with params"
     );
     serverErr.stack = err.stack;
@@ -165,7 +165,7 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
       logger.error(err);
       // CLEANUP:
       await deleteJob(job.id);
-      const serverErr = InternalServerErrorException(
+      const serverErr = new InternalServerErrorException(
         "Unable to copy demo files"
       );
       serverErr.stack = err.stack;
@@ -200,8 +200,10 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
     } catch (err) {
       logger.error(err);
       // CLEANUP:
-      await deleteJob(job.id);
-      const serverErr = InternalServerErrorException("Unable to save files");
+      await deleteJob(job.id, user);
+      const serverErr = new InternalServerErrorException(
+        "Unable to save files"
+      );
       serverErr.stack = err.stack;
       throw serverErr;
     }
