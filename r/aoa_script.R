@@ -644,7 +644,7 @@ print(prediction)
 #test prediction
 test_that('prediction test', {
   expect_type(prediction , "S4")
-  expect_equal(setequal(c(prediction@data@attributes[[1]]$value), training_data$class) , TRUE)
+  expect_equal(setequal(c(prediction@data@attributes[[1]]$value), model$levels) , TRUE)
   print("prediction passed testing")
 })
 
