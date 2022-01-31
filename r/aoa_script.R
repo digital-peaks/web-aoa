@@ -353,6 +353,7 @@ print("cloud mask created")
 
 gdalcubes_options(threads = 4) #set Threads for raster cube
 print("gdalcubes threads set to 4")
+print("download of Sentinel-2A imagery started")
 classification_image_name <- paste('classification_image', sep ="")  #set classifiication image name
 #build a raster_cube object
 cube_raster_aoi = raster_cube(collection_aoi, cube_view_aoi, mask = S2.mask) %>%
@@ -474,7 +475,7 @@ if(parameters$use_pretrained_model == "false") { #if a pretrained model is used 
   
   gdalcubes_options(threads = 4) #set Threads for raster cube 
   print("gdalcubes threads set to 4")
-  
+  print("download of Sentinel-2A imagery started")
   training_image_name <- paste('training_image', sep ="") 
   cube_raster_poly = raster_cube(collection_poly, cube_view_poly, mask = S2.mask) %>%
     select_bands(c("B01","B02","B03","B04","B05","B06","B07","B08","B8A","B09","B11","B12","SCL")) %>% #B, G, R, NIR, SWIR
