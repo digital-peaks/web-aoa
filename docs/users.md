@@ -1,4 +1,4 @@
-# Users
+# Manage Users
 
 The following endpoints are protected with a `X-API-KEY` header:
 
