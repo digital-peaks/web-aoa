@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 // eslint-disable-next-line
 const child_process = require("child_process");
+const { format } = require("date-fns");
 const Job = require("./job.model");
 const {
   NotFoundException,
@@ -28,6 +29,15 @@ const MODEL_MIME_TYPES = ["application/octet-stream"];
 const JOBS_FOLDER = path.join(__dirname, "/../../jobs");
 
 const maxUploadFileSizeBytes = 1024 * 1024 * MAX_UPLOAD_SIZE_MB;
+
+/**
+ * Show current timestamp for logs.
+ * @param {Date} curr
+ * @returns
+ */
+const getLogPrefix = (curr = new Date()) => {
+  return `${format(curr, "yyyy-MM-dd HH:mm:ss")}: `;
+};
 
 /**
  * Delete job.
@@ -224,31 +234,31 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
 
   script.stdout.on("data", (data) => {
     logger.info(data);
-    outputStream.write(data);
+    outputStream.write(`${getLogPrefix()}${data}`);
   });
 
   script.stderr.on("data", (data) => {
     const log = `ERROR: ${data}`;
     logger.warn(log);
-    outputStream.write(log);
+    outputStream.write(`${getLogPrefix()}${log}`);
   });
 
   script.on("error", (error) => {
     const log = `ERROR: ${error}\n`;
     logger.error(log);
-    outputStream.write(log);
+    outputStream.write(`${getLogPrefix()} ${log}`);
   });
 
   script.on("exit", (code, signal) => {
     const log = `EXIT with code=${code}, signal=${signal}\n`;
     logger.error(log);
-    outputStream.write(log);
+    outputStream.write(`${getLogPrefix()}${log}`);
   });
 
   script.on("close", async (code) => {
     const logCode = `Code: ${code}`;
     logger.info(logCode);
-    outputStream.write(`${logCode}\n`);
+    outputStream.write(`${getLogPrefix()}${logCode}\n`);
 
     // Handling status for MongoDB and log file.
     const status = code === 0 ? "success" : "error";
@@ -257,10 +267,10 @@ const createJob = async (bodyRaw, files, user, isDemo = false) => {
       await Job.updateOne({ _id: job.id }, { finished: new Date(), status });
     } catch (err) {
       logger.error(err);
-      outputStream.write(`Unable to set job status: ${err}\n`);
+      outputStream.write(`${getLogPrefix()}Unable to set job status: ${err}\n`);
     }
 
-    outputStream.end(status.toUpperCase());
+    outputStream.end(`${getLogPrefix()}${status.toUpperCase()}`);
     logger.info(`Close job ${job.id} with status: ${status}`);
   });
 
