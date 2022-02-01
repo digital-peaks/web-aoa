@@ -1,6 +1,9 @@
 migrate:
 	docker-compose run --rm migration
 
+test:
+	docker-compose run --rm tests_unit
+
 clean-db:
 	docker-compose down -v
 	docker-compose rm -f mongodb
