@@ -1,5 +1,50 @@
 # Web AOA
 
+## Getting started
+
+> Make sure you are using Docker 20.x and Docker Compose 1.29.x
+
+1. Run the services without building the docker containers:
+   ```sh
+   make dev-run
+   ```
+   > This will pull all docker images from DockerHub.
+2. The following services should be available:
+   - Frontend: http://localhost/
+   - API: http://localhost/api
+   - API Swagger Documentation: http://localhost/api/docs
+3. Migrate a dummy user (for local usage only)
+   ```sh
+   make migrate
+   ```
+   User credentials:  
+   Email: digitalpeaks@wwu.de  
+   Password: cycling8
+4. Login and run a job: http://localhost/
+
+> **Clean you local data:** Sometimes it's useful to reset all local data (troubleshoots). With `make clean-db` the whole MongoDB will be deleted. And all files in the `./job` folder needs to be removed.
+
+## Useful documents
+
+- [R Script](./docs/r_script.md)
+- [Manage users](./docs/users.md)
+- [Production Deployment](./docs/deployment.md)
+- [Backup](./docs/backup.md)
+
+## Development
+
+```sh
+docker-compose up
+```
+
+Or add the build flag to make sure, that everything is up to date.
+
+```sh
+docker-compose up --build
+```
+
+> All changes in `src` will be reloaded after the code (file) is changed. No need to restart the docker container.
+
 ## Configuration
 
 There are a few environment variables (see `.env`) that can be set to configure the services dynamically.
@@ -28,37 +73,3 @@ The following environment variables are required for the first start. It's not p
 | `MONGO_INITDB_API_PASSWORD`  | `-`     | MongoDB API password.  |
 
 > Please make sure you're using the right credentials (`MONGO_INITDB_API_*`) for `MONGODB_CONNECTION_STRING`.
-
-## Development
-
-```sh
-docker-compose up
-```
-
-Or add the build flag to make sure, that everything is up to date.
-
-```sh
-docker-compose up --build
-```
-
-> All changes in `src` will be reloaded after the code (file) is changed. No need to restart the docker container.
-
-## Production
-
-All relevant commands will be run with the following build command. For more information see the `Makefile`.
-
-```sh
-make prod-pull-run
-```
-
-> Please use the `.env` for your `.env.production` and change the credentials!
-> For more information about the environment variables see the section [Configuration](#configuration).
-
-### Prepare certificate for Haproxy
-
-```
-sudo cat "/etc/letsencrypt/live/domain.com/fullchain.pem" \
-    "/etc/letsencrypt/live/domain.com/privkey.pem" > "/etc/ssl/domain.com.pem"
-```
-
-The path `/etc/ssl/domain.com.pem` should be mounted via `HAPROXY_CERT`.

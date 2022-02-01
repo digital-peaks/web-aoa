@@ -1,7 +1,3 @@
-serve:
-	docker-compose pull frontend
-	docker-compose up --build
-
 migrate:
 	docker-compose run --rm migration
 
@@ -10,8 +6,13 @@ clean-db:
 	docker-compose rm -f mongodb
 	rm -rf ./mongo/volume
 
+dev-run:
+	docker-compose down
+	docker-compose pull
+	docker-compose --env-file .env up --no-build
+
 prod-pull-run:
-	sudo docker-compose down
+	docker-compose down
 	git pull
-	sudo docker-compose pull
-	sudo docker-compose --env-file .env.production up --no-build -d
+	docker-compose pull
+	docker-compose --env-file .env.production up --no-build -d
