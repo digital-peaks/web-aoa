@@ -45,6 +45,18 @@ docker-compose up --build
 
 > All changes in `src` will be reloaded after the code (file) is changed. No need to restart the docker container.
 
+## Tests
+
+### Unit
+
+The following command will run unit tests with Jest:
+
+```
+make test
+```
+
+> See `package.json` command `npm run test:unit`
+
 ## Configuration
 
 There are a few environment variables (see `.env`) that can be set to configure the services dynamically.
