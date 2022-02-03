@@ -78,7 +78,7 @@ services:
     image: node:16-alpine
     container_name: "migration"
     restart: always
-    command: ["/migration/create-user.js"]
+    command: ["node", "/migration/create-user.js"]
     environment:
       - API_HOST=api
       - EXPRESS_PORT=9000
